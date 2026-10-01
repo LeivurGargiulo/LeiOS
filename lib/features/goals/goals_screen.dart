@@ -73,7 +73,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
             child: ChipFilterRow<_GoalFilter>(
               values: _GoalFilter.values,
               selected: _filter,
-              labelOf: (f) => switch (f) { _GoalFilter.pending => 'Pending', _GoalFilter.active => 'Active', _GoalFilter.completed => 'Completed', _GoalFilter.all => 'All' },
+              labelOf: (f) => switch (f) { _GoalFilter.pending => l.pending, _GoalFilter.active => l.active, _GoalFilter.completed => l.completed, _GoalFilter.all => l.all },
               onSelected: (f) => setState(() => _filter = f),
             ),
           ),
@@ -102,9 +102,9 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
         SegmentedButton<_GoalView>(
           showSelectedIcon: false,
           style: const ButtonStyle(visualDensity: VisualDensity.compact),
-          segments: const [
-            ButtonSegment(value: _GoalView.list, icon: Icon(Icons.view_list), tooltip: 'List'),
-            ButtonSegment(value: _GoalView.byPeriod, icon: Icon(Icons.calendar_view_month), tooltip: 'By period'),
+          segments: [
+            ButtonSegment(value: _GoalView.list, icon: const Icon(Icons.view_list), tooltip: l.goalViewList),
+            ButtonSegment(value: _GoalView.byPeriod, icon: const Icon(Icons.calendar_view_month), tooltip: l.goalViewByPeriod),
           ],
           selected: {view},
           onSelectionChanged: (s) => ref.read(prefProvider('goals_view').notifier).set(s.first == _GoalView.byPeriod ? 'byPeriod' : 'list'),
@@ -131,6 +131,7 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   }
 
   Widget _byPeriod(BuildContext context, List<Goal> goals, Widget Function(Goal) row) {
+    final l = L10n.of(context);
     final board = yearBoard(goals, _year);
     final wide = context.isExpanded;
     Widget section(String title, List<Goal> g) => Column(
@@ -141,23 +142,23 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
       padding: const EdgeInsets.only(bottom: kListBottomPadding),
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          IconButton(tooltip: 'Previous year', icon: const Icon(Icons.chevron_left), onPressed: () => setState(() => _year--)),
+          IconButton(tooltip: l.previousYear, icon: const Icon(Icons.chevron_left), onPressed: () => setState(() => _year--)),
           Text('$_year', style: Theme.of(context).textTheme.titleMedium),
-          IconButton(tooltip: 'Next year', icon: const Icon(Icons.chevron_right), onPressed: () => setState(() => _year++)),
+          IconButton(tooltip: l.nextYear, icon: const Icon(Icons.chevron_right), onPressed: () => setState(() => _year++)),
         ]),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: Space.lg),
-          child: Text('Year ${board.year} — completed ${board.completed}/${board.total} (${board.percent}%)', style: Theme.of(context).textTheme.titleSmall),
+          child: Text(l.goalYearSummary(board.year, board.completed, board.total, board.percent), style: Theme.of(context).textTheme.titleSmall),
         ),
         if (wide)
           Padding(
             padding: const EdgeInsets.only(top: Space.sm),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [for (var q = 0; q < 4; q++) Expanded(child: section('Q${q + 1}', board.quarters[q]))]),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [for (var q = 0; q < 4; q++) Expanded(child: section(l.quarterShort(q + 1), board.quarters[q]))]),
           )
         else
-          for (var q = 0; q < 4; q++) section('Q${q + 1}', board.quarters[q]),
-        section('Whole year', board.wholeYear),
-        section('No target date', board.noTarget),
+          for (var q = 0; q < 4; q++) section(l.quarterShort(q + 1), board.quarters[q]),
+        section(l.goalWholeYear, board.wholeYear),
+        section(l.goalNoTargetDate, board.noTarget),
       ],
     );
   }
@@ -172,11 +173,12 @@ class _GoalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final p = goalProgress(goal, steps, DateTime.now());
     final chips = <Widget>[
       if (goal.targetDate != null && goal.precision != null) Chip(label: Text(periodLabel(goal.targetDate!, goal.precision!, fmt)), visualDensity: VisualDensity.compact),
-      Chip(label: Text(goalStatusLabel(goal.status)), visualDensity: VisualDensity.compact),
+      Chip(label: Text(goalStatusLabel(l, goal.status)), visualDensity: VisualDensity.compact),
     ];
     return ListTile(
       selected: selected,
@@ -184,7 +186,7 @@ class _GoalTile extends StatelessWidget {
       title: Text(goal.title),
       subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: Space.xs),
-        LabeledProgress(percent: p, semanticsLabel: '${goal.title} progress'),
+        LabeledProgress(percent: p, semanticsLabel: l.goalProgressOf(goal.title)),
         const SizedBox(height: Space.xs),
         Wrap(spacing: Space.sm, children: chips),
       ]),

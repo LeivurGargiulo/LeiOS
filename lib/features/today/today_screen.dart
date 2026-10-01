@@ -32,8 +32,8 @@ class TodayScreen extends StatelessWidget {
       body: TabbedScreen(
         prefKey: 'today',
         tabs: [
-          TabSpec(label: 'Check-in', builder: (_) => const _CheckIn()),
-          TabSpec(label: 'Review', builder: (_) => const ReviewTab()),
+          TabSpec(label: l.tabCheckIn, builder: (_) => const _CheckIn()),
+          TabSpec(label: l.tabReview, builder: (_) => const ReviewTab()),
         ],
       ),
     );
@@ -88,6 +88,7 @@ class _CheckIn extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
     final name = ref.watch(displayNameProvider);
     final now = DateTime.now();
     final greeting = greetingFor(now.hour);
@@ -113,7 +114,7 @@ class _CheckIn extends ConsumerWidget {
         const MoodCard(),
         if (doing.isNotEmpty)
           TonalCard(
-            title: 'Doing',
+            title: l.statusDoing,
             child: Column(children: [for (final t in doing) TaskTile(task: t, swipe: false, onTap: () => openTask(context, id: t.id))]),
           ),
         _DueSoonCard(buckets: buckets),
@@ -133,18 +134,18 @@ class _DueSoonCard extends StatelessWidget {
     final overdue = buckets[TaskBucket.overdue]!;
     final soon = [...buckets[TaskBucket.today]!, ...buckets[TaskBucket.next7]!];
     return TonalCard(
-      title: 'Due soon',
+      title: l.todayDueSoon,
       child: (overdue.isEmpty && soon.isEmpty)
           ? EmptyState(icon: Icons.wb_sunny, title: l.emptyCaughtUpTitle, message: l.emptyCaughtUpMessage, seed: 4, compact: true)
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (overdue.isNotEmpty) ...[
-                  SectionHeader('Overdue (${overdue.length})', color: cs.error, padding: const EdgeInsets.only(bottom: Space.xs)),
+                  SectionHeader(l.sectionCount(l.overdue, overdue.length), color: cs.error, padding: const EdgeInsets.only(bottom: Space.xs)),
                   for (final t in overdue) TaskTile(task: t, swipe: false, onTap: () => openTask(context, id: t.id)),
                 ],
                 if (soon.isNotEmpty) ...[
-                  const SectionHeader('Next 7 days', padding: EdgeInsets.only(top: Space.sm, bottom: Space.xs)),
+                  SectionHeader(l.next7Days, padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xs)),
                   for (final t in soon) TaskTile(task: t, swipe: false, onTap: () => openTask(context, id: t.id)),
                 ],
               ],

@@ -5,6 +5,7 @@ import '../core/design/breakpoints.dart';
 import '../core/design/motion.dart';
 import '../core/design/tokens.dart';
 import '../core/widgets/sync_status_chip.dart';
+import '../l10n/app_localizations.dart';
 import 'quick_add.dart';
 
 class FabSpec {
@@ -81,7 +82,7 @@ class _ScreenScaffoldState extends State<ScreenScaffold> {
               // over the quick-add long-press. The label lives in Semantics instead.
               child: Semantics(
                 button: true,
-                label: '${fab.tooltip}. Long-press for quick add.',
+                label: L10n.of(context).fabSemanticLabel(fab.tooltip),
                 onLongPress: () => showQuickAdd(context),
                 excludeSemantics: true,
                 child: GestureDetector(

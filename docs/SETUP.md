@@ -52,6 +52,12 @@ psql "$DEV_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/rls_isolation.sql
 ```
 Creates two users inside a transaction, proves user B cannot read, update, delete or spoof user A's rows, then rolls everything back. Run it against `leios-dev` only.
 
+## Windows toolchain notes
+
+- Turn on **Developer Mode** (`start ms-settings:developers`); plugin builds (Windows and Android) fail with "Building with plugins requires symlink support" otherwise.
+- Android: Gradle needs the NDK pinned by Flutter. If auto-install fails with "Package ndk not found" (the new `sdkmanager` shim), run `android sdk install ndk/<version>` from `%LOCALAPPDATA%\Android\Sdk\cmdline-tools\latestinndroid.exe`; the first build then also pulls Platform 35 and CMake 3.22.1.
+- If a fresh emulator stays `offline` in `adb devices`, kill `emulator`/`qemu-system-x86_64` and cold-boot with `emulator -avd <name> -no-snapshot`.
+
 ## Android release signing
 
 Keystore lives outside the repo. Create `android/key.properties` (git-ignored) with `storeFile`, `storePassword`, `keyAlias`, `keyPassword`, and reference it from `android/app/build.gradle.kts`'s `signingConfigs.release` before `flutter build appbundle --release`. Until then CI produces a debug-signed APK.

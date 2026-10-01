@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../domain/dates.dart';
 import '../../domain/goals.dart';
 import '../../domain/models.dart';
+import '../../l10n/app_localizations.dart';
 import '../design/tokens.dart';
 import 'filter_bar.dart';
 import 'format.dart';
@@ -16,12 +17,13 @@ class MonthSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          tooltip: 'Previous month',
+          tooltip: l.previousMonth,
           icon: const Icon(Icons.chevron_left),
           onPressed: () => onChanged(DateTime(month.year, month.month - 1, 1)),
         ),
@@ -32,7 +34,7 @@ class MonthSelector extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'Next month',
+          tooltip: l.nextMonth,
           icon: const Icon(Icons.chevron_right),
           onPressed: () => onChanged(DateTime(month.year, month.month + 1, 1)),
         ),
@@ -50,9 +52,9 @@ class _YearStepper extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(tooltip: 'Previous year', icon: const Icon(Icons.chevron_left), onPressed: () => onChanged(year - 1)),
+          IconButton(tooltip: L10n.of(context).previousYear, icon: const Icon(Icons.chevron_left), onPressed: () => onChanged(year - 1)),
           Text('$year', style: Theme.of(context).textTheme.titleMedium),
-          IconButton(tooltip: 'Next year', icon: const Icon(Icons.chevron_right), onPressed: () => onChanged(year + 1)),
+          IconButton(tooltip: L10n.of(context).nextYear, icon: const Icon(Icons.chevron_right), onPressed: () => onChanged(year + 1)),
         ],
       );
 }
@@ -75,6 +77,7 @@ class PeriodPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final p = precision;
     final d = date ?? DateTime.now();
     final tt = Theme.of(context).textTheme;
@@ -87,14 +90,19 @@ class PeriodPicker extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             ChoiceChip(
-              label: const Text('None'),
+              label: Text(l.none),
               selected: p == null,
               onSelected: (_) => onChanged(null, null),
             ),
             SegmentFilter<GoalPrecision>(
               values: GoalPrecision.values,
               selected: p ?? GoalPrecision.month,
-              labelOf: (v) => '${v.name[0].toUpperCase()}${v.name.substring(1)}',
+              labelOf: (v) => switch (v) {
+                GoalPrecision.day => l.precisionDay,
+                GoalPrecision.month => l.precisionMonth,
+                GoalPrecision.quarter => l.precisionQuarter,
+                GoalPrecision.year => l.precisionYear,
+              },
               onSelected: (v) => onChanged(periodStart(date ?? dateOnly(DateTime.now()), v), v),
             ),
           ],
@@ -136,7 +144,7 @@ class PeriodPicker extends StatelessWidget {
                   Wrap(spacing: Space.sm, children: [
                     for (var q = 0; q < 4; q++)
                       ChoiceChip(
-                        label: Text('Q${q + 1}'),
+                        label: Text(l.quarterShort(q + 1)),
                         selected: quarterOf(periodStart(d, p)) == q,
                         onSelected: (_) => onChanged(DateTime(d.year, q * 3 + 1, 1), p),
                       ),
@@ -146,7 +154,7 @@ class PeriodPicker extends StatelessWidget {
             GoalPrecision.year => _YearStepper(year: d.year, onChanged: (y) => onChanged(DateTime(y, 1, 1), p)),
           },
           const SizedBox(height: Space.sm),
-          Text('Target: ${periodLabel(d, p, format)}', style: tt.bodyMedium),
+          Text(l.targetPeriod(periodLabel(d, p, format)), style: tt.bodyMedium),
         ],
       ],
     );

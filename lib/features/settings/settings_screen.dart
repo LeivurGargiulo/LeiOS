@@ -49,29 +49,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _changePassword() async {
+    final l = L10n.of(context);
     final ctrl = TextEditingController();
     final messenger = ScaffoldMessenger.of(context);
     final auth = ref.read(authServiceProvider);
     final pw = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Change password'),
-        content: TextField(controller: ctrl, obscureText: true, autofocus: true, decoration: const InputDecoration(labelText: 'New password')),
+        title: Text(l.settingsChangePassword),
+        content: TextField(controller: ctrl, obscureText: true, autofocus: true, decoration: InputDecoration(labelText: l.settingsNewPassword)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(L10n.of(ctx).cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: Text(L10n.of(ctx).save)),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: Text(l.save)),
         ],
       ),
     );
     ctrl.dispose();
     if (pw == null) return;
     if (pw.length < 6) {
-      messenger.showSnackBar(const SnackBar(content: Text('Use at least 6 characters.')));
+      messenger.showSnackBar(SnackBar(content: Text(l.authPasswordMin)));
       return;
     }
     try {
       await auth.updatePassword(pw);
-      messenger.showSnackBar(const SnackBar(content: Text('Password updated.')));
+      messenger.showSnackBar(SnackBar(content: Text(l.settingsPasswordUpdated)));
     } on AuthException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));
     }
@@ -81,13 +82,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final db = ref.read(dbProvider);
     final pending = (await db.getUploadQueueStats()).count;
     if (!mounted) return;
+    final l = L10n.of(context);
     final ok = await confirmDelete(
       context,
-      title: 'Sign out?',
-      body: pending > 0
-          ? 'You have $pending change${pending == 1 ? '' : 's'} that haven\'t synced yet. Signing out will discard them and clear local data.'
-          : 'Local data on this device will be cleared. Everything is safe in the cloud.',
-      confirmLabel: 'Sign out',
+      title: l.settingsSignOutTitle,
+      body: pending > 0 ? l.settingsSignOutPending(pending) : l.settingsSignOutClean,
+      confirmLabel: l.settingsSignOut,
     );
     if (!ok) return;
     await db.disconnectAndClear();
@@ -95,11 +95,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _export() async {
+    final l = L10n.of(context);
     final ok = await confirmDelete(
       context,
-      title: 'Export data?',
-      body: 'The JSON file is plain text and NOT encrypted. Keep it somewhere safe.',
-      confirmLabel: 'Export',
+      title: l.settingsExportTitle,
+      body: l.settingsExportBody,
+      confirmLabel: l.settingsExport,
     );
     if (!ok || !mounted) return;
     final messenger = ScaffoldMessenger.of(context);
@@ -108,9 +109,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final name = exportFileName(DateTime.now());
     final dir = await getTemporaryDirectory();
     final file = await writeAtomic(File(p.join(dir.path, name)), json);
-    final saved = await FilePicker.saveFile(fileName: name, bytes: utf8.encode(json), mimeType: 'application/json', dialogTitle: 'Save LeiOS export');
+    final saved = await FilePicker.saveFile(fileName: name, bytes: utf8.encode(json), mimeType: 'application/json', dialogTitle: l.settingsExportDialogTitle);
     await file.delete().catchError((_) => file);
-    messenger.showSnackBar(SnackBar(content: Text(saved == null ? 'Export cancelled.' : 'Export saved.')));
+    messenger.showSnackBar(SnackBar(content: Text(saved == null ? l.settingsExportCancelled : l.settingsExportSaved)));
   }
 
   @override
@@ -139,12 +140,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.only(bottom: Space.xxl),
             children: [
-              const SectionHeader('Profile'),
+              SectionHeader(l.settingsProfile),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Space.lg),
                 child: TextField(
                   controller: _name,
-                  decoration: const InputDecoration(labelText: 'Display name'),
+                  decoration: InputDecoration(labelText: l.settingsDisplayName),
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _saveName(),
                   onEditingComplete: _saveName,
@@ -165,42 +166,42 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                 ]),
               ),
-              const SectionHeader('Appearance'),
+              SectionHeader(l.settingsAppearance),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Space.lg),
                 child: SegmentedButton<ThemeMode>(
                   showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(value: ThemeMode.system, label: Text('System')),
-                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                  segments: [
+                    ButtonSegment(value: ThemeMode.system, label: Text(l.themeSystem)),
+                    ButtonSegment(value: ThemeMode.light, label: Text(l.themeLight)),
+                    ButtonSegment(value: ThemeMode.dark, label: Text(l.themeDark)),
                   ],
                   selected: {mode},
                   onSelectionChanged: (s) => ref.read(themeModeProvider.notifier).set(s.first),
                 ),
               ),
-              const SectionHeader('Account'),
-              ListTile(leading: const Icon(Icons.alternate_email), title: const Text('Email'), subtitle: Text(user?.email ?? '')),
-              ListTile(leading: const Icon(Icons.password), title: const Text('Change password'), onTap: _changePassword),
+              SectionHeader(l.settingsAccount),
+              ListTile(leading: const Icon(Icons.alternate_email), title: Text(l.fieldEmail), subtitle: Text(user?.email ?? '')),
+              ListTile(leading: const Icon(Icons.password), title: Text(l.settingsChangePassword), onTap: _changePassword),
               ListTile(
                 leading: Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
-                title: Text('Sign out', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                title: Text(l.settingsSignOut, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                 onTap: _signOut,
               ),
-              const SectionHeader('Sync'),
+              SectionHeader(l.settingsSync),
               ListTile(
                 leading: const Icon(Icons.cloud_sync_outlined),
-                title: Text(status == null ? 'Offline' : (status.connected ? 'Connected' : 'Offline')),
-                subtitle: Text(last == null ? 'Not synced yet' : 'Last sync ${DateFormat.yMd().add_Hm().format(last.toLocal())}'),
+                title: Text(status == null ? l.syncOffline : (status.connected ? l.settingsConnected : l.syncOffline)),
+                subtitle: Text(last == null ? l.settingsNotSyncedYet : l.settingsLastSync(DateFormat.yMd().add_Hm().format(last.toLocal()))),
               ),
-              ListTile(leading: const Icon(Icons.upload_outlined), title: const Text('Pending changes'), trailing: Text('$pending', style: moneyStyle(tt.titleMedium))),
+              ListTile(leading: const Icon(Icons.upload_outlined), title: Text(l.settingsPendingChanges), trailing: Text('$pending', style: moneyStyle(tt.titleMedium))),
               if (errors.isEmpty)
-                const SizedBox(height: 180, child: EmptyState(icon: Icons.cloud_done, title: 'All changes synced', seed: 50, compact: true))
+                SizedBox(height: 180, child: EmptyState(icon: Icons.cloud_done, title: l.emptySyncTitle, seed: 50, compact: true))
               else ...[
                 ListTile(
                   leading: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
-                  title: Text('${errors.length} change${errors.length == 1 ? '' : 's'} could not be synced'),
-                  trailing: TextButton(onPressed: () => ref.read(syncErrorsRepoProvider).clear(), child: const Text('Dismiss all')),
+                  title: Text(l.settingsSyncErrors(errors.length)),
+                  trailing: TextButton(onPressed: () => ref.read(syncErrorsRepoProvider).clear(), child: Text(l.settingsDismissAll)),
                 ),
                 for (final e in errors) ListTile(dense: true, title: Text('${e.op} ${e.table}'), subtitle: Text(e.message)),
               ],
@@ -210,7 +211,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   alignment: Alignment.centerLeft,
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Reconnect'),
+                    label: Text(l.settingsReconnect),
                     onPressed: () async {
                       final db = ref.read(dbProvider);
                       await db.disconnect();
@@ -219,10 +220,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ),
-              const SectionHeader('Data'),
-              ListTile(leading: const Icon(Icons.download_outlined), title: const Text('Export data'), subtitle: const Text('Plain, unencrypted JSON of all your data'), onTap: _export),
-              const SectionHeader('About'),
-              const ListTile(leading: Icon(Icons.info_outline), title: Text('LeiOS'), subtitle: Text('Version $appVersion')),
+              SectionHeader(l.settingsData),
+              ListTile(leading: const Icon(Icons.download_outlined), title: Text(l.settingsExportData), subtitle: Text(l.settingsExportHint), onTap: _export),
+              SectionHeader(l.settingsAbout),
+              ListTile(leading: const Icon(Icons.info_outline), title: Text(l.appName), subtitle: Text(l.settingsVersion(appVersion))),
             ],
           ),
         ),

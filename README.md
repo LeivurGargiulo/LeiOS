@@ -30,4 +30,4 @@ flutter test test/golden --run-skipped                              # regenerate
 ```
 
 ## Docs
-[SETUP](docs/SETUP.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [SYNC](docs/SYNC.md) · [UI](docs/UI.md) · [DECISIONS](docs/DECISIONS.md) (includes what was *not* verified)
+[SETUP](docs/SETUP.md) · [DEVELOPMENT](docs/DEVELOPMENT.md) (testing and going to production) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [SYNC](docs/SYNC.md) · [UI](docs/UI.md) · [DECISIONS](docs/DECISIONS.md) (includes what was *not* verified)

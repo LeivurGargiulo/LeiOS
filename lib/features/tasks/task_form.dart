@@ -169,7 +169,7 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
         longTerm: _longTerm,
         dueDate: _due,
       );
-      showUndoSnackOn(messenger, l.entityAdded('Task'), undoLabel: l.undo, onUndo: () => repo.delete(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.quickAddTask), undoLabel: l.undo, onUndo: () => repo.delete(id));
     }
     discardDraft();
   }
@@ -182,7 +182,7 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
     if (t == null) return;
     await repo.delete(t.id);
     discardDraft();
-    showUndoSnackOn(messenger, l.entityDeleted('Task'), undoLabel: l.undo, onUndo: () => repo.restore(t));
+    showUndoSnackOn(messenger, l.entityDeleted(l.quickAddTask), undoLabel: l.undo, onUndo: () => repo.restore(t));
     if (!mounted) return;
     if (widget.presentation == EditorPresentation.inline) {
       widget.onClosed?.call();
@@ -193,12 +193,13 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final fmt = ref.watch(formatDateProvider);
     if (!_loaded) return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
     final choice = _choice;
     return EntityEditor(
       presentation: widget.presentation,
-      title: _editing ? 'Edit task' : 'New task',
+      title: _editing ? l.taskEdit : l.taskNew,
       dirty: _dirty,
       valid: _title.text.trim().isNotEmpty,
       onSave: _save,
@@ -214,7 +215,7 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
             controller: _title,
             autofocus: widget.presentation == EditorPresentation.sheet,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(labelText: l.title),
             textInputAction: TextInputAction.done,
           ),
           const SizedBox(height: Space.lg),
@@ -223,23 +224,23 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
             runSpacing: Space.sm,
             children: [
               ChoiceChip(
-                label: const Text('Today'),
+                label: Text(l.today),
                 selected: choice == _DueChoice.today,
                 onSelected: (_) => setState(() => _due = dateOnly(DateTime.now())),
               ),
               ChoiceChip(
-                label: const Text('Tomorrow'),
+                label: Text(l.tomorrow),
                 selected: choice == _DueChoice.tomorrow,
                 onSelected: (_) => setState(() => _due = addDays(dateOnly(DateTime.now()), 1)),
               ),
               ChoiceChip(
-                label: Text(choice == _DueChoice.pick && _due != null ? fmt(_due!) : 'Pick date'),
+                label: Text(choice == _DueChoice.pick && _due != null ? fmt(_due!) : l.taskPickDate),
                 avatar: const Icon(Icons.event, size: 18),
                 selected: choice == _DueChoice.pick,
                 onSelected: (_) => _pickDate(),
               ),
               ChoiceChip(
-                label: const Text('No date'),
+                label: Text(l.noDate),
                 selected: choice == _DueChoice.none,
                 onSelected: (_) => setState(() => _due = null),
               ),
@@ -250,26 +251,26 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
             spacing: Space.sm,
             runSpacing: Space.sm,
             children: [
-              FilterChip(label: const Text('Urgent'), selected: _urgent, onSelected: (v) => setState(() => _urgent = v)),
-              FilterChip(label: const Text('Important'), selected: _important, onSelected: (v) => setState(() => _important = v)),
-              FilterChip(label: const Text('Long-term'), selected: _longTerm, onSelected: (v) => setState(() => _longTerm = v)),
+              FilterChip(label: Text(l.urgent), selected: _urgent, onSelected: (v) => setState(() => _urgent = v)),
+              FilterChip(label: Text(l.important), selected: _important, onSelected: (v) => setState(() => _important = v)),
+              FilterChip(label: Text(l.longTerm), selected: _longTerm, onSelected: (v) => setState(() => _longTerm = v)),
             ],
           ),
           if (_editing) ...[
             const SizedBox(height: Space.md),
             SegmentedButton<TaskStatus>(
               showSelectedIcon: false,
-              segments: const [
-                ButtonSegment(value: TaskStatus.todo, label: Text('To do')),
-                ButtonSegment(value: TaskStatus.doing, label: Text('Doing')),
-                ButtonSegment(value: TaskStatus.done, label: Text('Done')),
+              segments: [
+                ButtonSegment(value: TaskStatus.todo, label: Text(l.statusTodo)),
+                ButtonSegment(value: TaskStatus.doing, label: Text(l.statusDoing)),
+                ButtonSegment(value: TaskStatus.done, label: Text(l.statusDone)),
               ],
               selected: {_status},
               onSelectionChanged: (s) => setState(() => _status = s.first),
             ),
           ],
           MoreDetails(
-            label: 'Notes',
+            label: l.notes,
             initiallyOpen: _notes.text.isNotEmpty,
             child: Padding(
               padding: const EdgeInsets.only(bottom: Space.sm),
@@ -278,7 +279,7 @@ class _TaskFormState extends ConsumerState<TaskForm> with DraftFormMixin<TaskFor
                 minLines: 2,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(labelText: 'Notes'),
+                decoration: InputDecoration(labelText: l.notes),
                 onChanged: (_) => setState(() {}),
               ),
             ),

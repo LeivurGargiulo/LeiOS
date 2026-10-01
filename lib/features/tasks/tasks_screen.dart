@@ -20,8 +20,8 @@ import 'task_tile.dart';
 
 enum TaskView { status, date, matrix }
 
-String _viewLabel(TaskView v) => switch (v) { TaskView.status => 'By status', TaskView.date => 'By date', TaskView.matrix => 'Matrix' };
-String _scopeLabel(TaskScope s) => switch (s) { TaskScope.regular => 'Regular', TaskScope.longTerm => 'Long-term', TaskScope.all => 'All' };
+String _viewLabel(L10n l, TaskView v) => switch (v) { TaskView.status => l.viewByStatus, TaskView.date => l.viewByDate, TaskView.matrix => l.viewMatrix };
+String _scopeLabel(L10n l, TaskScope s) => switch (s) { TaskScope.regular => l.scopeRegular, TaskScope.longTerm => l.longTerm, TaskScope.all => l.all };
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key, this.selectedId});
@@ -77,16 +77,16 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     }
 
     return ScreenScaffold(
-      title: 'Tasks',
+      title: l.navTasks,
       actions: [
         PopupMenuButton<TaskView>(
-          tooltip: 'Change view',
+          tooltip: l.tasksChangeView,
           icon: const Icon(Icons.view_agenda_outlined),
           initialValue: _view,
           onSelected: (v) => ref.read(prefProvider('tasks_view').notifier).set(v.name),
           itemBuilder: (_) => [
             for (final v in TaskView.values)
-              CheckedPopupMenuItem(value: v, checked: v == _view, child: Text(_viewLabel(v))),
+              CheckedPopupMenuItem(value: v, checked: v == _view, child: Text(_viewLabel(l, v))),
           ],
         ),
       ],
@@ -147,7 +147,7 @@ class _TasksMaster extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(Space.lg, Space.sm, Space.lg, Space.sm),
           child: Row(
             children: [
-              Expanded(child: SegmentFilter<TaskScope>(values: TaskScope.values, selected: scope, labelOf: _scopeLabel, onSelected: onScope)),
+              Expanded(child: SegmentFilter<TaskScope>(values: TaskScope.values, selected: scope, labelOf: (s) => _scopeLabel(l, s), onSelected: onScope)),
               if (context.isExpanded) ...[const SizedBox(width: Space.sm), NewButton(onPressed: onCreate)],
             ],
           ),
@@ -165,7 +165,7 @@ class _TasksMaster extends StatelessWidget {
                       seed: 1,
                     )
                   : switch (view) {
-                      TaskView.status => _statusView(context),
+                      TaskView.status => _statusView(context, l),
                       TaskView.date => _dateView(context, today, l),
                       TaskView.matrix => _matrixView(context, l),
                     },
@@ -176,19 +176,19 @@ class _TasksMaster extends StatelessWidget {
 
   Widget _tile(Task t) => TaskTile(task: t, selected: t.id == selectedId, onTap: () => onTap(t));
 
-  Widget _statusView(BuildContext context) {
+  Widget _statusView(BuildContext context, L10n l) {
     final todo = tasks.where((t) => t.status == TaskStatus.todo).toList();
     final doing = tasks.where((t) => t.status == TaskStatus.doing).toList();
     final done = tasks.where((t) => t.status == TaskStatus.done).toList();
     return ListView(
       padding: const EdgeInsets.only(bottom: kListBottomPadding),
       children: [
-        _section(context, 'To do', todo),
-        _section(context, 'Doing', doing),
+        _section(context, l.statusTodo, todo),
+        _section(context, l.statusDoing, doing),
         SectionHeader(
-          'Done (${done.length})',
+          l.sectionCount(l.statusDone, done.length),
           trailing: IconButton(
-            tooltip: doneOpen ? 'Collapse done tasks' : 'Expand done tasks',
+            tooltip: doneOpen ? l.tasksCollapseDone : l.tasksExpandDone,
             icon: AnimatedRotation(turns: doneOpen ? 0.5 : 0, duration: Dur.short, child: const Icon(Icons.expand_more)),
             onPressed: onToggleDone,
           ),
@@ -207,7 +207,7 @@ class _TasksMaster extends StatelessWidget {
     if (list.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [SectionHeader('$title (${list.length})', color: color), for (final t in list) _tile(t)],
+      children: [SectionHeader(L10n.of(context).sectionCount(title, list.length), color: color), for (final t in list) _tile(t)],
     );
   }
 
@@ -220,11 +220,11 @@ class _TasksMaster extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: kListBottomPadding),
       children: [
-        _section(context, 'Overdue', b[TaskBucket.overdue]!, color: cs.error),
-        _section(context, 'Today', b[TaskBucket.today]!),
-        _section(context, 'Next 7 days', b[TaskBucket.next7]!),
-        _section(context, 'Later', b[TaskBucket.later]!),
-        _section(context, 'No date', b[TaskBucket.noDate]!),
+        _section(context, l.overdue, b[TaskBucket.overdue]!, color: cs.error),
+        _section(context, l.today, b[TaskBucket.today]!),
+        _section(context, l.next7Days, b[TaskBucket.next7]!),
+        _section(context, l.later, b[TaskBucket.later]!),
+        _section(context, l.noDate, b[TaskBucket.noDate]!),
       ],
     );
   }
@@ -241,7 +241,7 @@ class _TasksMaster extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(Space.md, Space.md, Space.md, Space.xs),
-                child: Text('$title (${list.length})', style: Theme.of(context).textTheme.titleSmall),
+                child: Text(l.sectionCount(title, list.length), style: Theme.of(context).textTheme.titleSmall),
               ),
               Expanded(
                 child: list.isEmpty
@@ -256,10 +256,10 @@ class _TasksMaster extends StatelessWidget {
 
     return LayoutBuilder(builder: (context, c) {
       final cards = [
-        quadrant('Urgent & important', true, true),
-        quadrant('Important, not urgent', false, true),
-        quadrant('Urgent, not important', true, false),
-        quadrant('Neither', false, false),
+        quadrant(l.matrixUrgentImportant, true, true),
+        quadrant(l.matrixImportantNotUrgent, false, true),
+        quadrant(l.matrixUrgentNotImportant, true, false),
+        quadrant(l.matrixNeither, false, false),
       ];
       return GridView.count(
         crossAxisCount: 2,

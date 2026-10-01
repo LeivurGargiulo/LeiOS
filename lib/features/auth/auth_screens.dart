@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/design/tokens.dart';
 import '../../core/sync/auth_service.dart';
+import '../../l10n/app_localizations.dart';
 
 enum AuthMode { signIn, signUp, forgot }
 
@@ -40,16 +41,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       _info = null;
     });
     final auth = ref.read(authServiceProvider);
+    final l = L10n.of(context);
     try {
       switch (widget.mode) {
         case AuthMode.signIn:
           await auth.signIn(_email.text, _password.text);
         case AuthMode.signUp:
           final ready = await auth.signUp(_email.text, _password.text);
-          if (!ready && mounted) setState(() => _info = 'Account created. Check your inbox to confirm your email, then sign in.');
+          if (!ready && mounted) setState(() => _info = l.authAccountCreated);
         case AuthMode.forgot:
           await auth.sendPasswordReset(_email.text);
-          if (mounted) setState(() => _info = 'If an account exists, a reset link is on its way.');
+          if (mounted) setState(() => _info = l.authResetSent);
       }
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -62,10 +64,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final mode = widget.mode;
-    final title = switch (mode) { AuthMode.signIn => 'Sign in', AuthMode.signUp => 'Create account', AuthMode.forgot => 'Reset password' };
+    final title = switch (mode) { AuthMode.signIn => l.authSignIn, AuthMode.signUp => l.authCreateAccount, AuthMode.forgot => l.authResetPassword };
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -81,7 +84,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     children: [
                       Icon(Icons.spa_outlined, size: 56, color: cs.primary),
                       const SizedBox(height: Space.sm),
-                      Text('LeiOS', style: tt.headlineMedium, textAlign: TextAlign.center),
+                      Text(l.appName, style: tt.headlineMedium, textAlign: TextAlign.center),
                       const SizedBox(height: Space.xl),
                       Text(title, style: tt.titleLarge),
                       const SizedBox(height: Space.lg),
@@ -89,8 +92,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         controller: _email,
                         keyboardType: TextInputType.emailAddress,
                         autofillHints: const [AutofillHints.email],
-                        decoration: const InputDecoration(labelText: 'Email'),
-                        validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email.' : null,
+                        decoration: InputDecoration(labelText: l.fieldEmail),
+                        validator: (v) => (v == null || !v.contains('@')) ? l.authEnterValidEmail : null,
                         textInputAction: mode == AuthMode.forgot ? TextInputAction.done : TextInputAction.next,
                       ),
                       if (mode != AuthMode.forgot) ...[
@@ -100,14 +103,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           obscureText: _obscure,
                           autofillHints: [mode == AuthMode.signUp ? AutofillHints.newPassword : AutofillHints.password],
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: l.fieldPassword,
                             suffixIcon: IconButton(
-                              tooltip: _obscure ? 'Show password' : 'Hide password',
+                              tooltip: _obscure ? l.authShowPassword : l.authHidePassword,
                               icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
                               onPressed: () => setState(() => _obscure = !_obscure),
                             ),
                           ),
-                          validator: (v) => (v == null || v.length < 6) ? 'Use at least 6 characters.' : null,
+                          validator: (v) => (v == null || v.length < 6) ? l.authPasswordMin : null,
                           onFieldSubmitted: (_) => _submit(),
                         ),
                       ],
@@ -120,10 +123,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       ),
                       const SizedBox(height: Space.sm),
                       if (mode == AuthMode.signIn) ...[
-                        TextButton(onPressed: () => context.go('/auth/forgot'), child: const Text('Forgot password?')),
-                        TextButton(onPressed: () => context.go('/auth/sign-up'), child: const Text('Create an account')),
+                        TextButton(onPressed: () => context.go('/auth/forgot'), child: Text(l.authForgotPassword)),
+                        TextButton(onPressed: () => context.go('/auth/sign-up'), child: Text(l.authCreateAnAccount)),
                       ] else
-                        TextButton(onPressed: () => context.go('/auth/sign-in'), child: const Text('Back to sign in')),
+                        TextButton(onPressed: () => context.go('/auth/sign-in'), child: Text(l.authBackToSignIn)),
                     ],
                   ),
                 ),

@@ -21,11 +21,14 @@ Ambiguities are resolved with the simplest option that satisfies the spec.
 | 15 | `AuthUser` has value equality | Token refreshes emit the same user; without equality each refresh would rebuild providers and reconnect sync. |
 | 16 | Finance route selection encodes the tab: `/finance/tx:<id>` / `/finance/fund:<id>` | One route param serves both master-detail lists. |
 
-## Known gaps / not verified in this environment
-- **Not run against real Supabase / PowerSync Cloud.** No cloud projects exist in this environment, so Milestone 0's cloud spike, the RLS SQL test and the two-device checklist are written but **unexecuted**. Everything client-side is tested against a real local PowerSync (SQLite) database.
-- **Android build/emulator not verified** (no Android SDK here). `minSdk 24`, `INTERNET` permission and app id are configured; CI builds the APK. Linux release build and the Linux integration test (Xvfb) were run successfully.
-- **Windows/macOS** projects are generated but never built here.
-- **l10n:** shared strings (navigation, common actions, quick-add, all empty states) are in `lib/l10n/app_en.arb`; many screen-level labels are still inline English literals and need moving to ARB before adding Spanish.
+## Known gaps / verification status
+Verified on Lei's Windows 11 machine (2026-10-01): `flutter analyze --fatal-infos --fatal-warnings` clean; `flutter test` 142 passing, 1 skipped; `flutter build windows --release` runs and bundles `powersync_core.dll` + `sqlite3.dll`; `flutter build apk --debug` and `--release` build and start on the Pixel 8 API 36 emulator (release APK contains `libpowersync_core.so` and `libsqlite3.so` for every ABI; the Flutter release template does not enable R8 minification, so no keep rules are needed yet; re-check if `isMinifyEnabled` is turned on).
+
+- **Still not run against real Supabase / PowerSync Cloud.** Milestones 0/1, the RLS SQL test and the two-device checklist remain unexecuted; the app opens on the "not configured" screen in all builds above.
+- **Android:** not yet checked on a real phone; offline start, one-handed use, TalkBack and release signing (keystore + `key.properties`) are open. The release build is currently debug-signed.
+- **macOS:** never built (needs a Mac). Check `com.apple.security.network.client` and the file-save entitlement in `macos/Runner/*.entitlements`.
+- **Linux:** packaged bundle not re-run on a clean machine.
+- **l10n:** all UI strings in `lib/features`, `lib/core/widgets` and `lib/app` are in `lib/l10n/app_en.arb`, guarded by `test/l10n_guard_test.dart`. Still English-only Dart: `lib/domain` (`greetingFor`, `goalAdvanceLabel`, `dueLabel`, weekday names, `bestWorstWeekday`), `friendlyAuthError`, `ValidationException` messages, the category chip DB values, and the developer-facing `NotConfiguredApp` text. Move these before adding Spanish.
 - **Golden tests:** instead of pixel-comparison goldens, `test/golden/screenshots_test.dart` renders reference screenshots into `docs/screenshots` (skipped by default).
 - Optional items not built: debug design-gallery route, Markdown toolbar, window size/position memory, `flutter_secure_storage` session store.
-- In headless renders even a stock Material 3 FAB draws a thick dark outline; it appeared on the app's FAB too and is not caused by app code (not checked on a device).
+- **FAB outline:** in headless renders even a stock Material 3 FAB draws a thick dark outline. Not yet checked on a real device/desktop window.

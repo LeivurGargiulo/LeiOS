@@ -97,7 +97,7 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
       await repo.update(widget.noteId!, title: _title.text, content: _content.text, tags: _tags.text);
     } else {
       final id = await repo.create(title: _title.text, content: _content.text, tags: _tags.text);
-      showUndoSnackOn(messenger, l.entityAdded('Note'), undoLabel: l.undo, onUndo: () => repo.delete(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.quickAddNote), undoLabel: l.undo, onUndo: () => repo.delete(id));
     }
     discardDraft();
   }
@@ -110,7 +110,7 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
     final l = L10n.of(context);
     await repo.delete(n.id);
     discardDraft();
-    showUndoSnackOn(messenger, l.entityDeleted('Note'), undoLabel: l.undo, onUndo: () => repo.restore(n));
+    showUndoSnackOn(messenger, l.entityDeleted(l.quickAddNote), undoLabel: l.undo, onUndo: () => repo.restore(n));
     if (!mounted) return;
     if (widget.presentation == EditorPresentation.inline) {
       widget.onClosed?.call();
@@ -122,10 +122,11 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final l = L10n.of(context);
     final tags = splitTags(normalizeTags(_tags.text));
     return EntityEditor(
       presentation: widget.presentation,
-      title: widget.noteId == null ? 'New note' : 'Edit note',
+      title: widget.noteId == null ? l.noteNew : l.noteEdit,
       dirty: _dirty,
       valid: _title.text.trim().isNotEmpty,
       onSave: _save,
@@ -140,13 +141,13 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
           TextField(
             controller: _title,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(labelText: l.title),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _tags,
-            decoration: const InputDecoration(labelText: 'Tags', helperText: 'Comma separated'),
+            decoration: InputDecoration(labelText: l.tags, helperText: l.commaSeparated),
             onChanged: (_) => setState(() {}),
           ),
           if (tags.isNotEmpty)
@@ -154,13 +155,13 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
               padding: const EdgeInsets.only(top: Space.sm),
               child: Wrap(spacing: Space.sm, runSpacing: Space.xs, children: [for (final t in tags) Chip(label: Text(t))]),
             ),
-          const SectionHeader('Content', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          SectionHeader(l.noteContent, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
           Align(
             alignment: Alignment.centerLeft,
             child: SegmentFilter<bool>(
               values: const [false, true],
               selected: _preview,
-              labelOf: (p) => p ? 'Preview' : 'Edit',
+              labelOf: (p) => p ? l.notePreview : l.edit,
               onSelected: (p) => setState(() => _preview = p),
             ),
           ),
@@ -169,7 +170,7 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 240),
               child: MarkdownBody(
-                data: _content.text.isEmpty ? '*Nothing to preview*' : _content.text,
+                data: _content.text.isEmpty ? l.noteNothingToPreview : _content.text,
                 onTapLink: (text, href, title) {
                   if (href != null) launchUrl(Uri.parse(href));
                 },
@@ -182,7 +183,7 @@ class _NoteFormState extends ConsumerState<NoteForm> with DraftFormMixin<NoteFor
               maxLines: null,
               keyboardType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(alignLabelWithHint: true, labelText: 'Markdown'),
+              decoration: InputDecoration(alignLabelWithHint: true, labelText: l.noteMarkdown),
               onChanged: (_) => setState(() {}),
             ),
         ],

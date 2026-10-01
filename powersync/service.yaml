@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/cli-schemas@latest/json-schema/service-config.json
+# PowerSync Cloud instance for leios-dev (Supabase source). Secrets come from .env (git-ignored).
+_type: cloud
+name: Development
+region: us
+
+replication:
+  connections:
+    - type: postgresql
+      hostname: !env PS_DATABASE_HOST
+      port: 5432
+      database: !env PS_DATABASE_NAME
+      username: !env PS_DATABASE_USER
+      password:
+        secret: !env PS_DATABASE_PASSWORD
+      sslmode: verify-full
+
+# New Supabase JWT signing keys: JWKS and the "authenticated" audience are auto-detected
+# from the connection string. Legacy HS256 projects also need supabase_jwt_secret.
+client_auth:
+  supabase: true

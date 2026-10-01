@@ -21,9 +21,21 @@
   "newItem": "New",
   "moreDetails": "More details",
   "entityAdded": "{entity} added",
-  "@entityAdded": { "placeholders": { "entity": { "type": "String" } } },
+  "@entityAdded": {
+    "placeholders": {
+      "entity": {
+        "type": "String"
+      }
+    }
+  },
   "entityDeleted": "{entity} deleted",
-  "@entityDeleted": { "placeholders": { "entity": { "type": "String" } } },
+  "@entityDeleted": {
+    "placeholders": {
+      "entity": {
+        "type": "String"
+      }
+    }
+  },
   "quickAddTask": "Task",
   "quickAddNote": "Note",
   "quickAddTransaction": "Transaction",
@@ -73,5 +85,519 @@
   "emptyMoodMessage": "Pick how you feel today.",
   "emptySelectionTitle": "Select an item",
   "emptySelectionMessage": "Pick something from the list to see or edit it.",
-  "emptySyncTitle": "All changes synced"
+  "emptySyncTitle": "All changes synced",
+  "moreActions": "More actions",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "previousYear": "Previous year",
+  "nextYear": "Next year",
+  "none": "None",
+  "precisionDay": "Day",
+  "precisionMonth": "Month",
+  "precisionQuarter": "Quarter",
+  "precisionYear": "Year",
+  "quarterShort": "Q{n}",
+  "@quarterShort": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "targetPeriod": "Target: {period}",
+  "@targetPeriod": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "fabSemanticLabel": "{label}. Long-press for quick add.",
+  "@fabSemanticLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldEmail": "Email",
+  "fieldPassword": "Password",
+  "authSignIn": "Sign in",
+  "authCreateAccount": "Create account",
+  "authResetPassword": "Reset password",
+  "authAccountCreated": "Account created. Check your inbox to confirm your email, then sign in.",
+  "authResetSent": "If an account exists, a reset link is on its way.",
+  "authEnterValidEmail": "Enter a valid email.",
+  "authPasswordMin": "Use at least 6 characters.",
+  "authShowPassword": "Show password",
+  "authHidePassword": "Hide password",
+  "authForgotPassword": "Forgot password?",
+  "authCreateAnAccount": "Create an account",
+  "authBackToSignIn": "Back to sign in",
+  "settingsChangePassword": "Change password",
+  "settingsNewPassword": "New password",
+  "settingsPasswordUpdated": "Password updated.",
+  "settingsSignOut": "Sign out",
+  "settingsSignOutTitle": "Sign out?",
+  "settingsSignOutPending": "You have {count} {count, plural, =1{change} other{changes}} that haven't synced yet. Signing out will discard them and clear local data.",
+  "@settingsSignOutPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSignOutClean": "Local data on this device will be cleared. Everything is safe in the cloud.",
+  "settingsExportTitle": "Export data?",
+  "settingsExportBody": "The JSON file is plain text and NOT encrypted. Keep it somewhere safe.",
+  "settingsExport": "Export",
+  "settingsExportDialogTitle": "Save LeiOS export",
+  "settingsExportCancelled": "Export cancelled.",
+  "settingsExportSaved": "Export saved.",
+  "settingsProfile": "Profile",
+  "settingsDisplayName": "Display name",
+  "settingsAppearance": "Appearance",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "settingsAccount": "Account",
+  "settingsSync": "Sync",
+  "settingsConnected": "Connected",
+  "settingsNotSyncedYet": "Not synced yet",
+  "settingsLastSync": "Last sync {time}",
+  "@settingsLastSync": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsPendingChanges": "Pending changes",
+  "settingsSyncErrors": "{count} {count, plural, =1{change} other{changes}} could not be synced",
+  "@settingsSyncErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsDismissAll": "Dismiss all",
+  "settingsReconnect": "Reconnect",
+  "settingsData": "Data",
+  "settingsExportData": "Export data",
+  "settingsExportHint": "Plain, unencrypted JSON of all your data",
+  "settingsAbout": "About",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "edit": "Edit",
+  "title": "Title",
+  "notes": "Notes",
+  "description": "Description",
+  "name": "Name",
+  "tags": "Tags",
+  "commaSeparated": "Comma separated",
+  "all": "All",
+  "today": "Today",
+  "entityEntry": "Entry",
+  "entityFund": "Fund",
+  "entityGoal": "Goal",
+  "entityEvent": "Event",
+  "entityItem": "Item",
+  "statusTodo": "To do",
+  "statusDoing": "Doing",
+  "statusDone": "Done",
+  "sectionCount": "{title} ({count})",
+  "@sectionCount": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabCheckIn": "Check-in",
+  "tabReview": "Review",
+  "todayDueSoon": "Due soon",
+  "overdue": "Overdue",
+  "next7Days": "Next 7 days",
+  "moodHowAreYou": "How are you today?",
+  "moodAddNoteOrTags": "Add note or tags",
+  "moodEditNote": "Edit note",
+  "moodTitle": "Mood",
+  "moodRatingOf": "Mood {rating} of 5",
+  "@moodRatingOf": {
+    "placeholders": {
+      "rating": {
+        "type": "int"
+      }
+    }
+  },
+  "moodRatingOfSelected": "Mood {rating} of 5, selected",
+  "@moodRatingOfSelected": {
+    "placeholders": {
+      "rating": {
+        "type": "int"
+      }
+    }
+  },
+  "habitsManage": "Manage",
+  "habitsTitle": "Habits",
+  "habitTarget": "Target {count} / week",
+  "@habitTarget": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitDeleteTooltip": "Delete {name}",
+  "@habitDeleteTooltip": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitDeleteTitle": "Delete habit?",
+  "habitDeleteBody": "This also deletes all completions of \"{name}\".",
+  "@habitDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitNew": "New habit",
+  "habitEdit": "Edit habit",
+  "habitTargetPerWeek": "Target per week: {count}",
+  "@habitTargetPerWeek": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitStreak": "{count} day streak",
+  "@habitStreak": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "habitCompletedToday": "{name}, completed today",
+  "@habitCompletedToday": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitNotCompletedToday": "{name}, not completed today",
+  "@habitNotCompletedToday": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitDayCompleted": "{day}, {name}, completed",
+  "@habitDayCompleted": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "habitDayNotCompleted": "{day}, {name}, not completed",
+  "@habitDayNotCompleted": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "weekTitle": "Week",
+  "weekPrevious": "Previous week",
+  "weekNext": "Next week",
+  "weekThis": "This week",
+  "weekEmpty": "Add a habit to see your week.",
+  "statAverage": "Average",
+  "statCurrentStreak": "Current streak",
+  "statTotalEntries": "Total entries",
+  "statBestWeekday": "Best weekday",
+  "statWorstWeekday": "Worst weekday",
+  "moodInsights": "Mood insights",
+  "topTags": "Top tags",
+  "moodTrend": "Mood trend (30 days)",
+  "showChart": "Show chart",
+  "showTable": "Show as table",
+  "moodTrendSemantics": "Mood over the last 30 days. Use \"Show as table\" for the data.",
+  "moodHistory": "Mood history",
+  "pending": "Pending",
+  "active": "Active",
+  "completed": "Completed",
+  "listTabMedia": "Media",
+  "listTabWishlist": "Wishlist",
+  "listTabDreams": "Dreams",
+  "listTabLearning": "Learning",
+  "listDonePurchased": "Purchased",
+  "listDoneLearned": "Learned",
+  "listCategoryKind": "Kind",
+  "listCategoryCategory": "Category",
+  "listCategoryArea": "Area",
+  "listReorder": "Reorder",
+  "listDoneReordering": "Done reordering",
+  "listAddItemTooltip": "Add {kind} item",
+  "@listAddItemTooltip": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "listNewItem": "New {kind} item",
+  "@listNewItem": {
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      }
+    }
+  },
+  "listEditItem": "Edit item",
+  "fieldUrl": "URL",
+  "fieldPrice": "Price",
+  "listFilterBy": "Filter by {category}",
+  "@listFilterBy": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "listPendingTotal": "Pending total",
+  "listMarkPending": "Mark pending",
+  "listMarkDone": "Mark {status}",
+  "@listMarkDone": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "listStatusYes": "{status}: yes",
+  "@listStatusYes": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "listStatusNo": "{status}: no",
+  "@listStatusNo": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "listOpenLink": "Open link",
+  "longTerm": "Long-term",
+  "urgent": "Urgent",
+  "important": "Important",
+  "tomorrow": "Tomorrow",
+  "noDate": "No date",
+  "later": "Later",
+  "viewByStatus": "By status",
+  "viewByDate": "By date",
+  "viewMatrix": "Matrix",
+  "scopeRegular": "Regular",
+  "tasksChangeView": "Change view",
+  "tasksCollapseDone": "Collapse done tasks",
+  "tasksExpandDone": "Expand done tasks",
+  "matrixUrgentImportant": "Urgent & important",
+  "matrixImportantNotUrgent": "Important, not urgent",
+  "matrixUrgentNotImportant": "Urgent, not important",
+  "matrixNeither": "Neither",
+  "taskNew": "New task",
+  "taskEdit": "Edit task",
+  "taskPickDate": "Pick date",
+  "taskTapToAdvance": "{status}. Tap to advance.",
+  "@taskTapToAdvance": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "taskMarkTodo": "Mark to do",
+  "taskAdvance": "Advance status",
+  "calendarMonth": "Month",
+  "calendarAgenda": "Agenda",
+  "eventNew": "New event",
+  "eventEdit": "Edit event",
+  "calendarTasksDue": "Tasks due",
+  "calendarTasksDueShort": "tasks due",
+  "calendarEventsCount": "{count} {count, plural, =1{event} other{events}}",
+  "@calendarEventsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "allDay": "All day",
+  "eventRepeatsWeekly": "Repeats weekly",
+  "calendarTodayHeader": "Today · {label}",
+  "@calendarTodayHeader": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "eventDeleteTitle": "Delete event?",
+  "eventDeleteSeries": "This deletes the whole repeating series, not just one occurrence.",
+  "eventDeleteSingle": "This event will be deleted.",
+  "eventWhen": "When",
+  "eventStartTime": "Start time",
+  "eventEndTime": "End time",
+  "eventClearEnd": "Clear end",
+  "eventRepeat": "Repeat",
+  "eventRepeatWeekly": "Repeat weekly",
+  "eventUntilOptional": "Until (optional)",
+  "eventUntil": "Until {date}",
+  "@eventUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "clear": "Clear",
+  "eventEndDateMultiDay": "End date (multi-day)",
+  "eventEnds": "Ends {date}",
+  "@eventEnds": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "eventDetails": "Details",
+  "goalDeleteTitle": "Delete goal?",
+  "goalDeleteBody": "This also deletes the goal's checklist steps.",
+  "goalNew": "New goal",
+  "goalEdit": "Edit goal",
+  "goalTarget": "Target",
+  "goalStatus": "Status",
+  "goalProgress": "Progress",
+  "goalSteps": "Steps",
+  "goalProgressSemantics": "Goal progress",
+  "goalProgressOf": "{title} progress",
+  "@goalProgressOf": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "goalRemoveStep": "Remove step",
+  "goalAddStepLabel": "Add a step",
+  "goalAddStepTooltip": "Add step",
+  "goalCreated": "Created {date}",
+  "@goalCreated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "goalViewList": "List",
+  "goalViewByPeriod": "By period",
+  "goalYearSummary": "Year {year} — completed {completed}/{total} ({percent}%)",
+  "@goalYearSummary": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "goalWholeYear": "Whole year",
+  "goalNoTargetDate": "No target date",
+  "noteNew": "New note",
+  "noteEdit": "Edit note",
+  "noteSearch": "Search notes",
+  "noteContent": "Content",
+  "notePreview": "Preview",
+  "noteNothingToPreview": "*Nothing to preview*",
+  "noteMarkdown": "Markdown",
+  "txIncome": "Income",
+  "txExpense": "Expense",
+  "txSaved": "Saved",
+  "txNew": "New transaction",
+  "txEdit": "Edit transaction",
+  "fieldAmount": "Amount",
+  "fieldCategory": "Category",
+  "fieldNote": "Note",
+  "fieldSavingsFund": "Savings fund",
+  "fundDeleteTitle": "Delete fund?",
+  "fundDeleteBody": "Transactions linked to \"{name}\" are kept but no longer belong to a fund.",
+  "@fundDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "fundNew": "New savings fund",
+  "fundEdit": "Edit savings fund",
+  "fieldTargetAmount": "Target amount",
+  "financeTransactions": "Transactions",
+  "financeSavingsFunds": "Savings Funds",
+  "fundProgressOf": "{name} progress",
+  "@fundProgressOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "financeBalance": "Balance",
+  "financeBalanceSemantics": "Balance {value}",
+  "@financeBalanceSemantics": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "financeExpenses": "Expenses",
+  "financeSpendingByCategory": "Spending by category",
+  "txUncategorized": "Uncategorized"
 }

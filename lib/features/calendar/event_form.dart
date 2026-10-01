@@ -22,8 +22,6 @@ void openEvent(BuildContext context, {String? id, DateTime? day}) {
   }
 }
 
-const _dayLetters = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
 class EventForm extends ConsumerStatefulWidget {
   const EventForm({super.key, this.eventId, this.initialDate, required this.presentation, this.onClosed});
   final String? eventId;
@@ -161,7 +159,7 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
       await repo.update(widget.eventId!, title: _title.text, description: _description.text, date: _date, endDate: endDate, startMinutes: start, endMinutes: end, weekdays: weekdays, until: until);
     } else {
       final id = await repo.create(title: _title.text, description: _description.text, date: _date, endDate: endDate, startMinutes: start, endMinutes: end, weekdays: weekdays, until: until);
-      showUndoSnackOn(messenger, l.entityAdded('Event'), undoLabel: l.undo, onUndo: () => repo.delete(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.entityEvent), undoLabel: l.undo, onUndo: () => repo.delete(id));
     }
     discardDraft();
   }
@@ -169,18 +167,18 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
   Future<void> _delete() async {
     final o = _original;
     if (o == null) return;
+    final l = L10n.of(context);
     final ok = await confirmDelete(
       context,
-      title: 'Delete event?',
-      body: o.recurring ? 'This deletes the whole repeating series, not just one occurrence.' : 'This event will be deleted.',
+      title: l.eventDeleteTitle,
+      body: o.recurring ? l.eventDeleteSeries : l.eventDeleteSingle,
     );
     if (!ok || !mounted) return;
     final repo = ref.read(eventsRepoProvider);
     final messenger = ScaffoldMessenger.of(context);
-    final l = L10n.of(context);
     await repo.delete(o.id);
     discardDraft();
-    showUndoSnackOn(messenger, l.entityDeleted('Event'), undoLabel: l.undo, onUndo: () => repo.restore(o));
+    showUndoSnackOn(messenger, l.entityDeleted(l.entityEvent), undoLabel: l.undo, onUndo: () => repo.restore(o));
     if (!mounted) return;
     if (widget.presentation == EditorPresentation.inline) {
       widget.onClosed?.call();
@@ -192,10 +190,11 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final l = L10n.of(context);
     final fmt = ref.watch(formatDateProvider);
     return EntityEditor(
       presentation: widget.presentation,
-      title: _editing ? 'Edit event' : 'New event',
+      title: _editing ? l.eventEdit : l.eventNew,
       dirty: _dirty,
       valid: _title.text.trim().isNotEmpty,
       onSave: _save,
@@ -210,11 +209,11 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
           TextField(
             controller: _title,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(labelText: l.title),
             onChanged: (_) => setState(() {}),
           ),
-          const SectionHeader('When', padding: EdgeInsets.only(top: Space.lg, bottom: Space.xs)),
-          SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('All day'), value: _allDay, onChanged: (v) => setState(() => _allDay = v)),
+          SectionHeader(l.eventWhen, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.xs)),
+          SwitchListTile(contentPadding: EdgeInsets.zero, title: Text(l.allDay), value: _allDay, onChanged: (v) => setState(() => _allDay = v)),
           Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
             OutlinedButton.icon(icon: const Icon(Icons.event), label: Text(fmt(_date)), onPressed: () => _pickDate(_date, (d) {
                   _date = d;
@@ -223,21 +222,21 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
             if (!_allDay) ...[
               OutlinedButton.icon(
                 icon: const Icon(Icons.schedule),
-                label: Text(_start == null ? 'Start time' : formatTimeOfDayMinutes(context, _start!)),
+                label: Text(_start == null ? l.eventStartTime : formatTimeOfDayMinutes(context, _start!)),
                 onPressed: () => _pickTime(_start, (m) => _start = m),
               ),
               OutlinedButton.icon(
                 icon: const Icon(Icons.schedule),
-                label: Text(_end == null ? 'End time' : formatTimeOfDayMinutes(context, _end!)),
+                label: Text(_end == null ? l.eventEndTime : formatTimeOfDayMinutes(context, _end!)),
                 onPressed: () => _pickTime(_end ?? _start, (m) => _end = m),
               ),
-              if (_end != null) TextButton(onPressed: () => setState(() => _end = null), child: const Text('Clear end')),
+              if (_end != null) TextButton(onPressed: () => setState(() => _end = null), child: Text(l.eventClearEnd)),
             ],
           ]),
-          const SectionHeader('Repeat', padding: EdgeInsets.only(top: Space.lg, bottom: Space.xs)),
+          SectionHeader(l.eventRepeat, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.xs)),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Repeat weekly'),
+            title: Text(l.eventRepeatWeekly),
             value: _repeat,
             onChanged: (v) => setState(() {
               _repeat = v;
@@ -248,7 +247,7 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
             Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
               for (var i = 0; i < 7; i++)
                 FilterChip(
-                  label: Text(_dayLetters[i]),
+                  label: Text(weekdayShort(i)),
                   selected: (_mask & (1 << i)) != 0,
                   onSelected: (s) => setState(() => _mask = s ? (_mask | (1 << i)) : (_mask & ~(1 << i))),
                 ),
@@ -257,27 +256,27 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
             Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
               OutlinedButton.icon(
                 icon: const Icon(Icons.event_busy),
-                label: Text(_until == null ? 'Until (optional)' : 'Until ${fmt(_until!)}'),
+                label: Text(_until == null ? l.eventUntilOptional : l.eventUntil(fmt(_until!))),
                 onPressed: () => _pickDate(_until ?? _date, (d) => _until = d),
               ),
-              if (_until != null) TextButton(onPressed: () => setState(() => _until = null), child: const Text('Clear')),
+              if (_until != null) TextButton(onPressed: () => setState(() => _until = null), child: Text(l.clear)),
             ]),
           ] else
             Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
               OutlinedButton.icon(
                 icon: const Icon(Icons.date_range),
-                label: Text(_endDate == null ? 'End date (multi-day)' : 'Ends ${fmt(_endDate!)}'),
+                label: Text(_endDate == null ? l.eventEndDateMultiDay : l.eventEnds(fmt(_endDate!))),
                 onPressed: () => _pickDate(_endDate ?? _date, (d) => _endDate = d),
               ),
-              if (_endDate != null) TextButton(onPressed: () => setState(() => _endDate = null), child: const Text('Clear')),
+              if (_endDate != null) TextButton(onPressed: () => setState(() => _endDate = null), child: Text(l.clear)),
             ]),
-          const SectionHeader('Details', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          SectionHeader(l.eventDetails, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
           TextField(
             controller: _description,
             minLines: 2,
             maxLines: 6,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Description'),
+            decoration: InputDecoration(labelText: l.description),
             onChanged: (_) => setState(() {}),
           ),
         ],

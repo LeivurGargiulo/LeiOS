@@ -74,8 +74,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       body: TabbedScreen(
         prefKey: 'calendar',
         tabs: [
-          TabSpec(label: 'Month', builder: (_) => _monthTab(context)),
-          TabSpec(label: 'Agenda', builder: (_) => const _Agenda()),
+          TabSpec(label: l.calendarMonth, builder: (_) => _monthTab(context)),
+          TabSpec(label: l.calendarAgenda, builder: (_) => const _Agenda()),
         ],
       ),
     );
@@ -100,7 +100,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         _selectDay(t);
         setState(() => _month = DateTime(t.year, t.month, 1));
       },
-      trailing: expanded ? NewButton(onPressed: () => context.go('/calendar/${isoDate(_selected)}/new'), label: 'New event') : null,
+      trailing: expanded ? NewButton(onPressed: () => context.go('/calendar/${isoDate(_selected)}/new'), label: L10n.of(context).eventNew) : null,
     );
 
     final dayPanel = _DayPanel(day: _selected, events: events, tasks: tasks, shrink: !expanded);
@@ -154,6 +154,7 @@ class _MonthGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
     final days = monthGrid(month.year, month.month);
@@ -174,20 +175,20 @@ class _MonthGrid extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.sm),
             child: Row(children: [
-              IconButton(tooltip: 'Previous month', icon: const Icon(Icons.chevron_left), onPressed: () => onShift(-1)),
+              IconButton(tooltip: l.previousMonth, icon: const Icon(Icons.chevron_left), onPressed: () => onShift(-1)),
               Expanded(
                 child: Center(child: Semantics(liveRegion: true, child: Text(monthYear(month), style: tt.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1))),
               ),
-              IconButton(tooltip: 'Next month', icon: const Icon(Icons.chevron_right), onPressed: () => onShift(1)),
-              TextButton(onPressed: onToday, child: const Text('Today')),
+              IconButton(tooltip: l.nextMonth, icon: const Icon(Icons.chevron_right), onPressed: () => onShift(1)),
+              TextButton(onPressed: onToday, child: Text(l.today)),
             ]),
           ),
           if (trailing != null) Padding(padding: const EdgeInsets.only(right: Space.md), child: Align(alignment: Alignment.centerRight, child: trailing)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.sm),
             child: Row(children: [
-              for (final d in const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
-                Expanded(child: Center(child: Text(d, style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)))),
+              for (var i = 0; i < 7; i++)
+                Expanded(child: Center(child: Text(weekdayShort(i), style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)))),
             ]),
           ),
           PageTransitionSwitcher(
@@ -250,9 +251,14 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l = L10n.of(context);
     final tt = Theme.of(context).textTheme;
     final textColor = isToday ? cs.onPrimary : (inMonth ? cs.onSurface : cs.onSurfaceVariant.withValues(alpha: 0.5));
-    final label = '${DateFormat('EEEE d').format(day)}${eventCount > 0 ? ', $eventCount events' : ''}${hasTasks ? ', tasks due' : ''}';
+    final label = [
+      DateFormat('EEEE d').format(day),
+      if (eventCount > 0) l.calendarEventsCount(eventCount),
+      if (hasTasks) l.calendarTasksDueShort,
+    ].join(', ');
     return Semantics(
       button: true,
       selected: isSelected,
@@ -315,7 +321,7 @@ class _DayPanel extends ConsumerWidget {
       SectionHeader(longDate(day)),
       for (final e in dayEvents) EventTile(event: e, day: day, onTap: () => openEvent(context, id: e.id, day: day)),
       if (dayTasks.isNotEmpty) ...[
-        const SectionHeader('Tasks due'),
+        SectionHeader(l.calendarTasksDue),
         for (final t in dayTasks) TaskTile(task: t, onTap: () => openTask(context, id: t.id)),
       ],
       const SizedBox(height: Space.sm),
@@ -334,9 +340,10 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final time = event.allDay
-        ? 'All day'
+        ? l.allDay
         : event.endMinutes == null
             ? formatTimeOfDayMinutes(context, event.startMinutes!)
             : '${formatTimeOfDayMinutes(context, event.startMinutes!)} – ${formatTimeOfDayMinutes(context, event.endMinutes!)}';
@@ -344,7 +351,7 @@ class EventTile extends StatelessWidget {
       leading: Container(width: 4, height: 40, decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(2))),
       title: Text(event.title),
       subtitle: Text(time),
-      trailing: event.recurring ? const Icon(Icons.repeat, size: 18, semanticLabel: 'Repeats weekly') : null,
+      trailing: event.recurring ? Icon(Icons.repeat, size: 18, semanticLabel: l.eventRepeatsWeekly) : null,
       onTap: onTap,
     );
   }
@@ -404,7 +411,7 @@ class _DayHeader extends SliverPersistentHeaderDelegate {
       child: Semantics(
         header: true,
         child: Text(
-          highlight ? 'Today · $label' : label,
+          highlight ? L10n.of(context).calendarTodayHeader(label) : label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(color: highlight ? color.primary : color.onSurfaceVariant),
         ),
       ),

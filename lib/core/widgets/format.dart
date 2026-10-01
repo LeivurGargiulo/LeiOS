@@ -26,6 +26,9 @@ String formatTimeOfDayMinutes(BuildContext context, int minutes) {
   return ev.formatMinutes(minutes, use24h: use24);
 }
 
+/// Short weekday name for ISO weekday index [i] (0 = Monday).
+String weekdayShort(int i) => DateFormat.E().format(DateTime(2024, 1, 1 + i));
+
 String longDate(DateTime d) => DateFormat('EEEE, d MMMM').format(d);
 String monthYear(DateTime d) => DateFormat('MMMM yyyy').format(d);
 
