@@ -68,13 +68,9 @@ PowerSync CLI auth: `PS_ADMIN_TOKEN` from `.env` (`set -a; . ./.env; set +a` in 
 - **`PSYNC_S2101` / `S2105` in PowerSync logs**: JWT not accepted. Keep `client_auth: supabase: true`; if the project ever moves back to legacy HS256 keys, add the JWT secret (see the PowerSync skill's `supabase-auth.md`).
 - **`42501 permission denied` on upload**: missing `authenticated` grant or RLS policy on that table.
 - **Rows never appear on a second device**: table missing from the publication or from `sync-rules.yaml`.
-- **Migration drift in dev**: the dev schema was first applied through the Supabase MCP, so the remote migration versions are `20261001215355` and `20261001215359`, not the local file names. Before the first `supabase db push` (or the dev-migrate GitHub workflow), align them:
-  ```bash
-  supabase link --project-ref ytqaephergdkoilnntjb
-  supabase migration repair --status reverted 20261001215355 20261001215359
-  supabase migration repair --status applied 20261001000000 20261001000100
-  supabase db push      # applies 20261001000200 (idempotent)
-  ```
+- **Rows missing right after a deploy**: `powersync deploy` restarts replication. For a minute or two the replication slot is inactive and `powersync status` shows a growing lag; wait for a fresh `last_keepalive_ts` before concluding something is broken.
+- **Sign-up returns 429 / no confirmation email**: with "Confirm email" on, Supabase's built-in mailer allows only a few emails per hour. For test users, insert pre-confirmed rows into `auth.users` (+ `auth.identities`) with the Supabase MCP and delete them afterwards, or configure custom SMTP.
+- **Dev migration history** is aligned with the repo (`20261001000000`, `…0100`, `…0200`). If you ever apply a migration through the MCP's `apply_migration`, it stamps its own timestamp; either use `supabase db push` or rename the version in `supabase_migrations.schema_migrations` to the file's version.
 
 ## Part 2: Going to production
 
@@ -85,8 +81,8 @@ Do all of Part 1 on dev first. Production is a separate Supabase project **and**
 - [ ] `flutter analyze` clean, `flutter test` and the integration test green on `main`, CI green.
 - [ ] RLS test and security advisor clean on dev; every table has RLS and a policy.
 - [ ] Manual smoke test, two-device test and two-user isolation test done (Part 1 §3, SYNC.md checklist).
-- [ ] Android release signing configured (SETUP.md § Android release signing); keystore backed up outside the repo. **Losing it means you can never update the installed app.**
-- [ ] Decide the paid-tier question: Free Supabase has **no automatic backups** and pauses after a week idle. For real data, use Supabase Pro (daily backups, no pausing) and PowerSync Pro, or accept manual exports (Settings → Export data).
+- [ ] Android release signing: **deferred** (debug-signed builds only). Before publishing to a store, configure it (SETUP.md § Android release signing) and back the keystore up outside the repo. **Losing it means you can never update the installed app.**
+- [x] Tier decision: staying on the free tiers. Supabase Free has **no automatic backups** and pauses after a week idle, so export regularly (Settings → Export data) and un-pause from the dashboard when needed.
 
 ### B. Production Supabase (`leios-prod`)
 
@@ -160,6 +156,6 @@ CI: set repository secrets `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `POWERSYNC_URL` 
 
 ### G. Cleanup before go-live
 
-- Rotate the dev `powersync_role` password (it was shown in a chat session) and the dev PowerSync PAT if it was shared.
+- The dev `powersync_role` password was rotated on 2026-10-01 (the first one appeared in a chat session). Rotate again whenever it is shared.
 - Delete throwaway test users from dev if you will promote dev data to anything (you should not; prod starts empty).
 - Do not commit `.env`, `.env.json`, `.env.prod.json`, `android/key.properties` or any keystore (all git-ignored; verify with `git status` before committing).
