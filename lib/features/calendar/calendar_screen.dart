@@ -103,10 +103,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       trailing: expanded ? NewButton(onPressed: () => context.go('/calendar/${isoDate(_selected)}/new'), label: 'New event') : null,
     );
 
-    final dayPanel = _DayPanel(day: _selected, events: events, tasks: tasks);
+    final dayPanel = _DayPanel(day: _selected, events: events, tasks: tasks, shrink: !expanded);
 
     if (!expanded) {
-      return Column(children: [grid, const Divider(), Expanded(child: dayPanel)]);
+      return ListView(padding: const EdgeInsets.only(bottom: kListBottomPadding), children: [grid, const Divider(), dayPanel]);
     }
 
     return MasterDetailScaffold<Event>(
@@ -176,13 +176,13 @@ class _MonthGrid extends StatelessWidget {
             child: Row(children: [
               IconButton(tooltip: 'Previous month', icon: const Icon(Icons.chevron_left), onPressed: () => onShift(-1)),
               Expanded(
-                child: Center(child: Semantics(liveRegion: true, child: Text(monthYear(month), style: tt.titleMedium))),
+                child: Center(child: Semantics(liveRegion: true, child: Text(monthYear(month), style: tt.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1))),
               ),
               IconButton(tooltip: 'Next month', icon: const Icon(Icons.chevron_right), onPressed: () => onShift(1)),
               TextButton(onPressed: onToday, child: const Text('Today')),
-              ?trailing,
             ]),
           ),
+          if (trailing != null) Padding(padding: const EdgeInsets.only(right: Space.md), child: Align(alignment: Alignment.centerRight, child: trailing)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.sm),
             child: Row(children: [
@@ -294,7 +294,10 @@ class _DayCell extends StatelessWidget {
 }
 
 class _DayPanel extends ConsumerWidget {
-  const _DayPanel({required this.day, required this.events, required this.tasks});
+  const _DayPanel({required this.day, required this.events, required this.tasks, this.shrink = false});
+
+  /// Non-scrolling column (used inside another scroll view).
+  final bool shrink;
   final DateTime day;
   final List<Event> events;
   final List<Task> tasks;
@@ -308,19 +311,18 @@ class _DayPanel extends ConsumerWidget {
     if (dayEvents.isEmpty && dayTasks.isEmpty) {
       return EmptyState(icon: Icons.event_available, title: l.emptyDayTitle, message: l.emptyDayMessage, actionLabel: l.emptyDayAction, onAction: () => openEvent(context, day: day), seed: 40);
     }
-    return ListView(
-      padding: const EdgeInsets.only(bottom: kListBottomPadding),
-      children: [
-        SectionHeader(longDate(day)),
-        for (final e in dayEvents) EventTile(event: e, day: day, onTap: () => openEvent(context, id: e.id, day: day)),
-        if (dayTasks.isNotEmpty) ...[
-          const SectionHeader('Tasks due'),
-          for (final t in dayTasks) TaskTile(task: t, onTap: () => openTask(context, id: t.id)),
-        ],
-        const SizedBox(height: Space.sm),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: Space.lg), child: Text(fmt(day), style: Theme.of(context).textTheme.labelSmall)),
+    final children = [
+      SectionHeader(longDate(day)),
+      for (final e in dayEvents) EventTile(event: e, day: day, onTap: () => openEvent(context, id: e.id, day: day)),
+      if (dayTasks.isNotEmpty) ...[
+        const SectionHeader('Tasks due'),
+        for (final t in dayTasks) TaskTile(task: t, onTap: () => openTask(context, id: t.id)),
       ],
-    );
+      const SizedBox(height: Space.sm),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: Space.lg), child: Text(fmt(day), style: Theme.of(context).textTheme.labelSmall)),
+    ];
+    if (shrink) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+    return ListView(padding: const EdgeInsets.only(bottom: kListBottomPadding), children: children);
   }
 }
 

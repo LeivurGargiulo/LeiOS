@@ -106,7 +106,7 @@ class _MetaChip extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 2),
-          Text(label, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color)),
+          Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color))),
         ],
       );
 }

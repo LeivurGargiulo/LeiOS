@@ -8,8 +8,15 @@ import '../../app/providers.dart';
 /// Usage: override [draftKey], [snapshot], [restore] and [isDirtyDraft]; call
 /// [loadDraft] at the end of `initState`, [discardDraft] after save/discard.
 mixin DraftFormMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  late final DraftsNotifier _draftNotifier = ref.read(draftsProvider.notifier);
+  late final DraftsNotifier _draftNotifier;
   bool _draftDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Captured now: `ref` must not be used inside dispose().
+    _draftNotifier = ref.read(draftsProvider.notifier);
+  }
 
   String get draftKey;
   Map<String, Object?> snapshot();

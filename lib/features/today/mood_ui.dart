@@ -34,39 +34,50 @@ class MoodPicker extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         for (var r = 1; r <= 5; r++)
-          Semantics(
-            button: true,
-            selected: value == r,
-            label: 'Mood $r of 5${value == r ? ', selected' : ''}',
-            excludeSemantics: true,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => onChanged(r),
-              child: SizedBox(
-                width: 56,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedScale(
-                      scale: value == r ? 1.15 : 1,
-                      duration: motionDuration(context),
-                      child: AnimatedContainer(
+          Flexible(
+            child: Semantics(
+              button: true,
+              selected: value == r,
+              label: 'Mood $r of 5${value == r ? ', selected' : ''}',
+              excludeSemantics: true,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => onChanged(r),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 44, maxWidth: 56),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedScale(
+                        scale: value == r ? 1.15 : 1,
                         duration: motionDuration(context),
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: value == r ? cs.secondaryContainer : Colors.transparent,
-                        ),
-                        child: Icon(
-                          moodIcons[r - 1],
-                          size: 30,
-                          color: value == r ? cs.onSecondaryContainer : cs.onSurfaceVariant,
+                        child: AnimatedContainer(
+                          duration: motionDuration(context),
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: value == r
+                                ? cs.secondaryContainer
+                                : Colors.transparent,
+                          ),
+                          child: Icon(
+                            moodIcons[r - 1],
+                            size: 30,
+                            color: value == r
+                                ? cs.onSecondaryContainer
+                                : cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
-                    ),
-                    Text('$r', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-                  ],
+                      Text(
+                        '$r',
+                        style: tt.labelSmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -82,8 +93,11 @@ class MoodCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final today = dateOnly(DateTime.now());
-    final feelings = ref.watch(feelingsProvider).asData?.value ?? const <Feeling>[];
-    final todayEntry = feelings.where((f) => sameDay(f.date, today)).firstOrNull;
+    final feelings =
+        ref.watch(feelingsProvider).asData?.value ?? const <Feeling>[];
+    final todayEntry = feelings
+        .where((f) => sameDay(f.date, today))
+        .firstOrNull;
     return TonalCard(
       title: 'How are you today?',
       child: Column(
@@ -98,7 +112,9 @@ class MoodCard extends ConsumerWidget {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => showMoodSheet(context, date: today),
-              child: Text(todayEntry == null ? 'Add note or tags' : 'Edit note'),
+              child: Text(
+                todayEntry == null ? 'Add note or tags' : 'Edit note',
+              ),
             ),
           ),
         ],
@@ -150,21 +166,33 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
     super.dispose();
   }
 
-  bool get _dirty =>
-      _original == null ? (_rating != null || _notes.text.isNotEmpty || _tags.text.isNotEmpty) : (_rating != _original!.rating || _notes.text != _original!.notes || _tags.text != _original!.tags);
+  bool get _dirty => _original == null
+      ? (_rating != null || _notes.text.isNotEmpty || _tags.text.isNotEmpty)
+      : (_rating != _original!.rating ||
+            _notes.text != _original!.notes ||
+            _tags.text != _original!.tags);
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded) return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
+    if (!_loaded)
+      return const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      );
     return EntitySheet(
       title: 'Mood',
       dirty: _dirty,
       valid: _rating != null,
-      onSave: () => ref.read(feelingsRepoProvider).upsert(widget.date, _rating!, notes: _notes.text, tags: _tags.text),
+      onSave: () => ref
+          .read(feelingsRepoProvider)
+          .upsert(widget.date, _rating!, notes: _notes.text, tags: _tags.text),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MoodPicker(value: _rating, onChanged: (r) => setState(() => _rating = r)),
+          MoodPicker(
+            value: _rating,
+            onChanged: (r) => setState(() => _rating = r),
+          ),
           const SizedBox(height: Space.lg),
           TextField(
             controller: _notes,
@@ -177,13 +205,22 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
           const SizedBox(height: Space.md),
           TextField(
             controller: _tags,
-            decoration: const InputDecoration(labelText: 'Tags', helperText: 'Comma separated'),
+            decoration: const InputDecoration(
+              labelText: 'Tags',
+              helperText: 'Comma separated',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           if (_tags.text.trim().isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: Space.sm),
-              child: Wrap(spacing: Space.sm, children: [for (final t in splitTags(normalizeTags(_tags.text))) Chip(label: Text(t))]),
+              child: Wrap(
+                spacing: Space.sm,
+                children: [
+                  for (final t in splitTags(normalizeTags(_tags.text)))
+                    Chip(label: Text(t)),
+                ],
+              ),
             ),
         ],
       ),

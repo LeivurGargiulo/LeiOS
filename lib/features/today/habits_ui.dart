@@ -102,30 +102,53 @@ class _HabitRow extends ConsumerWidget {
     final done = dates.contains(today);
     final count = weeklyCount(dates, today);
     void toggle() => ref.read(habitsRepoProvider).toggle(habit.id, today);
+    final chips = [
+      StreakChip(streak: streak(dates, today)),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: Space.xs),
+        decoration: BoxDecoration(border: Border.all(color: cs.outlineVariant), borderRadius: BorderRadius.circular(8)),
+        child: Text('$count/${habit.targetFrequency}', style: moneyStyle(tt.labelLarge)),
+      ),
+    ];
+    final circle = StatusCircle(
+      state: done ? 2 : 0,
+      size: 32,
+      onTap: toggle,
+      semanticLabel: '${habit.name}, ${done ? 'completed' : 'not completed'} today',
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: toggle,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: Space.xs),
-        child: Row(
-          children: [
-            StatusCircle(
-              state: done ? 2 : 0,
-              size: 32,
-              onTap: toggle,
-              semanticLabel: '${habit.name}, ${done ? 'completed' : 'not completed'} today',
-            ),
+        // Roomy: chips trail the name. Narrow (small card / large text): chips wrap under the name.
+        child: LayoutBuilder(builder: (context, c) {
+          final narrow = c.maxWidth < 300 || MediaQuery.textScalerOf(context).scale(16) > 22;
+          if (!narrow) {
+            return Row(children: [
+              circle,
+              const SizedBox(width: Space.sm),
+              Expanded(child: Text(habit.name, style: tt.bodyLarge)),
+              chips[0],
+              const SizedBox(width: Space.sm),
+              chips[1],
+            ]);
+          }
+          return Row(children: [
+            circle,
             const SizedBox(width: Space.sm),
-            Expanded(child: Text(habit.name, style: tt.bodyLarge)),
-            StreakChip(streak: streak(dates, today)),
-            const SizedBox(width: Space.sm),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: Space.xs),
-              decoration: BoxDecoration(border: Border.all(color: cs.outlineVariant), borderRadius: BorderRadius.circular(8)),
-              child: Text('$count/${habit.targetFrequency}', style: moneyStyle(tt.labelLarge)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(habit.name, style: tt.bodyLarge),
+                  const SizedBox(height: Space.xs),
+                  Wrap(spacing: Space.sm, runSpacing: Space.xs, children: chips),
+                ],
+              ),
             ),
-          ],
-        ),
+          ]);
+        }),
       ),
     );
   }

@@ -18,15 +18,18 @@ class MonthSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
           tooltip: 'Previous month',
           icon: const Icon(Icons.chevron_left),
           onPressed: () => onChanged(DateTime(month.year, month.month - 1, 1)),
         ),
-        Semantics(
-          liveRegion: true,
-          child: Text(monthYear(month), style: Theme.of(context).textTheme.titleMedium),
+        Flexible(
+          child: Semantics(
+            liveRegion: true,
+            child: Text(monthYear(month), style: Theme.of(context).textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
+          ),
         ),
         IconButton(
           tooltip: 'Next month',
