@@ -6,6 +6,13 @@ class AuthUser {
   const AuthUser({required this.id, required this.email});
   final String id;
   final String email;
+
+  // Value equality so token refreshes (same user) don't rebuild providers or reconnect sync.
+  @override
+  bool operator ==(Object other) => other is AuthUser && other.id == id && other.email == email;
+
+  @override
+  int get hashCode => Object.hash(id, email);
 }
 
 class AuthException implements Exception {

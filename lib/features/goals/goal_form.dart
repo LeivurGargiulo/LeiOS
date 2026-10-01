@@ -216,9 +216,8 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
                 _precision = p;
               })),
           const SectionHeader('Status', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
-          Row(children: [
+          Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
             Chip(label: Text(goalStatusLabel(_status))),
-            const SizedBox(width: Space.sm),
             FilledButton.tonal(onPressed: () => setState(() => _status = nextGoalStatus(_status)), child: Text(goalAdvanceLabel(_status))),
           ]),
           const SectionHeader('Progress', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),

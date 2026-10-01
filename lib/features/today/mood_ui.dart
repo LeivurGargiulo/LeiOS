@@ -174,11 +174,12 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_loaded)
+    if (!_loaded) {
       return const SizedBox(
         height: 160,
         child: Center(child: CircularProgressIndicator()),
       );
+    }
     return EntitySheet(
       title: 'Mood',
       dirty: _dirty,

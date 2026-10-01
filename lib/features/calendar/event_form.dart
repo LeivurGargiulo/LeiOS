@@ -254,7 +254,7 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
                 ),
             ]),
             const SizedBox(height: Space.sm),
-            Row(children: [
+            Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
               OutlinedButton.icon(
                 icon: const Icon(Icons.event_busy),
                 label: Text(_until == null ? 'Until (optional)' : 'Until ${fmt(_until!)}'),
@@ -263,7 +263,7 @@ class _EventFormState extends ConsumerState<EventForm> with DraftFormMixin<Event
               if (_until != null) TextButton(onPressed: () => setState(() => _until = null), child: const Text('Clear')),
             ]),
           ] else
-            Row(children: [
+            Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
               OutlinedButton.icon(
                 icon: const Icon(Icons.date_range),
                 label: Text(_endDate == null ? 'End date (multi-day)' : 'Ends ${fmt(_endDate!)}'),

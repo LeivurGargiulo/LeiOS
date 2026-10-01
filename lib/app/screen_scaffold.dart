@@ -77,12 +77,21 @@ class _ScreenScaffoldState extends State<ScreenScaffold> {
               duration: motionDuration(context),
               curve: Ease.inPlace,
               offset: _fabVisible ? Offset.zero : const Offset(0, 2),
-              child: GestureDetector(
+              // No Tooltip here: its own long-press recognizer would win the gesture arena
+              // over the quick-add long-press. The label lives in Semantics instead.
+              child: Semantics(
+                button: true,
+                label: '${fab.tooltip}. Long-press for quick add.',
                 onLongPress: () => showQuickAdd(context),
-                child: FloatingActionButton(
-                  tooltip: '${fab.tooltip} (long-press for quick add)',
-                  onPressed: fab.onPressed,
-                  child: Icon(fab.icon),
+                excludeSemantics: true,
+                child: GestureDetector(
+                  onLongPress: () => showQuickAdd(context),
+                  // Every branch keeps its own FAB alive, so a shared Hero tag would clash.
+                  child: FloatingActionButton(
+                    heroTag: null,
+                    onPressed: fab.onPressed,
+                    child: Icon(fab.icon),
+                  ),
                 ),
               ),
             ),

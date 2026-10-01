@@ -10,7 +10,10 @@ enum EditorPresentation { sheet, screen, inline }
 
 /// Shows [builder] as a modal bottom sheet configured per spec §9.5.
 /// Drag-to-dismiss is handled by [EntitySheet] itself so a dirty sheet can ask first.
-Future<T?> showEntitySheet<T>(BuildContext context, {required WidgetBuilder builder}) {
+Future<T?> showEntitySheet<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+}) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
@@ -22,8 +25,14 @@ Future<T?> showEntitySheet<T>(BuildContext context, {required WidgetBuilder buil
   );
 }
 
-Future<T?> pushEntityScreen<T>(BuildContext context, {required WidgetBuilder builder}) {
-  return Navigator.of(context, rootNavigator: true).push<T>(MaterialPageRoute(builder: builder, fullscreenDialog: true));
+Future<T?> pushEntityScreen<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+}) {
+  return Navigator.of(
+    context,
+    rootNavigator: true,
+  ).push<T>(MaterialPageRoute(builder: builder, fullscreenDialog: true));
 }
 
 /// Shared save/validation logic for the three presentations.
@@ -89,7 +98,9 @@ class _EntitySheetState extends State<EntitySheet> {
       },
       child: AnimatedPadding(
         duration: motionDuration(context),
-        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxH),
           child: Column(
@@ -107,19 +118,33 @@ class _EntitySheetState extends State<EntitySheet> {
                     child: Container(
                       width: 32,
                       height: 4,
-                      decoration: BoxDecoration(color: cs.onSurfaceVariant.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(2)),
+                      decoration: BoxDecoration(
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                 ),
               ),
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(Space.xl, 0, Space.xl, Space.sm),
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.xl,
+                    0,
+                    Space.xl,
+                    Space.sm,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Semantics(header: true, child: Text(widget.title, style: Theme.of(context).textTheme.titleLarge)),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          widget.title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
                       const SizedBox(height: Space.md),
                       widget.child,
                     ],
@@ -127,32 +152,57 @@ class _EntitySheetState extends State<EntitySheet> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(Space.xl, Space.sm, Space.xl, Space.lg),
+                padding: const EdgeInsets.fromLTRB(
+                  Space.xl,
+                  Space.sm,
+                  Space.xl,
+                  Space.lg,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: Space.sm),
-                        child: Text(_error!, style: TextStyle(color: cs.error), key: const Key('editor-error')),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(color: cs.error),
+                          key: const Key('editor-error'),
+                        ),
                       ),
-                    Row(
+                    // Stacks vertically instead of overflowing at large text scales.
+                    OverflowBar(
+                      alignment: MainAxisAlignment.end,
+                      spacing: Space.sm,
+                      overflowSpacing: Space.sm,
+                      overflowAlignment: OverflowBarAlignment.end,
                       children: [
                         if (widget.onDelete != null)
                           TextButton(
-                            style: TextButton.styleFrom(foregroundColor: cs.error),
-                            onPressed: _busy ? null : () async {
-                              await widget.onDelete!();
-                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: cs.error,
+                            ),
+                            onPressed: _busy
+                                ? null
+                                : () async {
+                                    await widget.onDelete!();
+                                  },
                             child: Text(l.delete),
                           ),
-                        const Spacer(),
-                        TextButton(onPressed: _busy ? null : _close, child: Text(l.cancel)),
-                        const SizedBox(width: Space.sm),
+                        TextButton(
+                          onPressed: _busy ? null : _close,
+                          child: Text(l.cancel),
+                        ),
                         FilledButton(
                           onPressed: (!widget.valid || _busy) ? null : _save,
                           child: _busy
-                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : Text(widget.saveLabel ?? l.save),
                         ),
                       ],
@@ -191,7 +241,7 @@ class EntityScreen extends StatefulWidget {
   final Future<void> Function()? onDelete;
   final bool inline;
 
-  /// Called after save / discard when inline (deselects). Defaults to popping the route.
+  /// Called after save / discard (e.g. to clear a draft or deselect when inline).
   final VoidCallback? onClosed;
 
   @override
@@ -202,12 +252,11 @@ class _EntityScreenState extends State<EntityScreen> {
   String? _error;
   bool _busy = false;
 
+  /// Runs the caller's cleanup, then leaves: inline editors deselect via [EntityScreen.onClosed],
+  /// full-screen routes pop.
   void _done() {
-    if (widget.onClosed != null) {
-      widget.onClosed!();
-    } else if (mounted) {
-      Navigator.of(context).pop();
-    }
+    widget.onClosed?.call();
+    if (!widget.inline && mounted) Navigator.of(context).pop();
   }
 
   Future<void> _close() async {
@@ -246,7 +295,11 @@ class _EntityScreenState extends State<EntityScreen> {
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: Space.md),
-                  child: Text(_error!, style: TextStyle(color: cs.error), key: const Key('editor-error')),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: cs.error),
+                    key: const Key('editor-error'),
+                  ),
                 ),
               widget.child,
               if (widget.onDelete != null) ...[
@@ -271,13 +324,27 @@ class _EntityScreenState extends State<EntityScreen> {
       return Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: Space.xl, vertical: Space.sm),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Space.xl,
+              vertical: Space.sm,
+            ),
             child: Row(
               children: [
-                Expanded(child: Text(widget.title, style: Theme.of(context).textTheme.titleLarge)),
-                TextButton(onPressed: _busy ? null : _close, child: Text(l.discard)),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _busy ? null : _close,
+                  child: Text(l.discard),
+                ),
                 const SizedBox(width: Space.sm),
-                FilledButton(onPressed: canSave ? _save : null, child: Text(l.save)),
+                FilledButton(
+                  onPressed: canSave ? _save : null,
+                  child: Text(l.save),
+                ),
               ],
             ),
           ),
@@ -294,12 +361,19 @@ class _EntityScreenState extends State<EntityScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(icon: const Icon(Icons.close), tooltip: l.close, onPressed: _close),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: l.close,
+            onPressed: _close,
+          ),
           title: Text(widget.title),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: Space.sm),
-              child: FilledButton(onPressed: canSave ? _save : null, child: Text(l.save)),
+              child: FilledButton(
+                onPressed: canSave ? _save : null,
+                child: Text(l.save),
+              ),
             ),
           ],
         ),
@@ -335,7 +409,14 @@ class EntityEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (presentation == EditorPresentation.sheet) {
-      return EntitySheet(title: title, dirty: dirty, valid: valid, onSave: onSave, onDelete: onDelete, child: child);
+      return EntitySheet(
+        title: title,
+        dirty: dirty,
+        valid: valid,
+        onSave: onSave,
+        onDelete: onDelete,
+        child: child,
+      );
     }
     return EntityScreen(
       title: title,
@@ -352,7 +433,12 @@ class EntityEditor extends StatelessWidget {
 
 /// Animated "More details" expander (spec §9.5).
 class MoreDetails extends StatefulWidget {
-  const MoreDetails({super.key, required this.child, this.label, this.initiallyOpen = false});
+  const MoreDetails({
+    super.key,
+    required this.child,
+    this.label,
+    this.initiallyOpen = false,
+  });
   final Widget child;
   final String? label;
   final bool initiallyOpen;
