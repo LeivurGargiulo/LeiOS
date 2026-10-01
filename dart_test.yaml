@@ -1,0 +1,3 @@
+tags:
+  screenshots:
+    skip: "Writes docs/screenshots. Run explicitly: flutter test test/golden --run-skipped"

@@ -1,0 +1,22 @@
+# Sync Streams (the format the current PowerSync docs recommend, "edition 3").
+# One auto-subscribed stream: every client syncs only its own rows (user_id = the JWT subject).
+# A legacy `bucket_definitions` equivalent is kept in docs/SYNC.md in case the instance is on an older edition.
+config:
+  edition: 3
+
+streams:
+  user_data:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM tasks WHERE user_id = auth.user_id()
+      - SELECT * FROM habits WHERE user_id = auth.user_id()
+      - SELECT * FROM habit_completions WHERE user_id = auth.user_id()
+      - SELECT * FROM feelings WHERE user_id = auth.user_id()
+      - SELECT * FROM goals WHERE user_id = auth.user_id()
+      - SELECT * FROM goal_steps WHERE user_id = auth.user_id()
+      - SELECT * FROM events WHERE user_id = auth.user_id()
+      - SELECT * FROM notes WHERE user_id = auth.user_id()
+      - SELECT * FROM list_items WHERE user_id = auth.user_id()
+      - SELECT * FROM savings_funds WHERE user_id = auth.user_id()
+      - SELECT * FROM transactions WHERE user_id = auth.user_id()
+      - SELECT * FROM settings WHERE user_id = auth.user_id()
