@@ -9,6 +9,7 @@ import '../../core/widgets/small_widgets.dart';
 import '../../domain/dates.dart';
 import '../../domain/models.dart';
 import '../../domain/tags.dart';
+import '../../l10n/app_localizations.dart';
 
 const moodIcons = [
   Icons.sentiment_very_dissatisfied,
@@ -28,6 +29,7 @@ class MoodPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     return Row(
@@ -38,7 +40,7 @@ class MoodPicker extends StatelessWidget {
             child: Semantics(
               button: true,
               selected: value == r,
-              label: 'Mood $r of 5${value == r ? ', selected' : ''}',
+              label: value == r ? l.moodRatingOfSelected(r) : l.moodRatingOf(r),
               excludeSemantics: true,
               child: InkWell(
                 customBorder: const CircleBorder(),
@@ -92,6 +94,7 @@ class MoodCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
     final today = dateOnly(DateTime.now());
     final feelings =
         ref.watch(feelingsProvider).asData?.value ?? const <Feeling>[];
@@ -99,7 +102,7 @@ class MoodCard extends ConsumerWidget {
         .where((f) => sameDay(f.date, today))
         .firstOrNull;
     return TonalCard(
-      title: 'How are you today?',
+      title: l.moodHowAreYou,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -113,7 +116,7 @@ class MoodCard extends ConsumerWidget {
             child: TextButton(
               onPressed: () => showMoodSheet(context, date: today),
               child: Text(
-                todayEntry == null ? 'Add note or tags' : 'Edit note',
+                todayEntry == null ? l.moodAddNoteOrTags : l.moodEditNote,
               ),
             ),
           ),
@@ -174,6 +177,7 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     if (!_loaded) {
       return const SizedBox(
         height: 160,
@@ -181,7 +185,7 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
       );
     }
     return EntitySheet(
-      title: 'Mood',
+      title: l.moodTitle,
       dirty: _dirty,
       valid: _rating != null,
       onSave: () => ref
@@ -200,15 +204,15 @@ class _MoodSheetState extends ConsumerState<MoodSheet> {
             minLines: 2,
             maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Notes'),
+            decoration: InputDecoration(labelText: l.notes),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _tags,
-            decoration: const InputDecoration(
-              labelText: 'Tags',
-              helperText: 'Comma separated',
+            decoration: InputDecoration(
+              labelText: l.tags,
+              helperText: l.commaSeparated,
             ),
             onChanged: (_) => setState(() {}),
           ),

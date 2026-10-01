@@ -7,7 +7,7 @@ Future<bool> confirmDelete(
   BuildContext context, {
   required String title,
   required String body,
-  String confirmLabel = 'Delete',
+  String? confirmLabel,
 }) async {
   final cs = Theme.of(context).colorScheme;
   final r = await showDialog<bool>(
@@ -20,7 +20,7 @@ Future<bool> confirmDelete(
         TextButton(
           style: TextButton.styleFrom(foregroundColor: cs.error),
           onPressed: () => Navigator.pop(ctx, true),
-          child: Text(confirmLabel),
+          child: Text(confirmLabel ?? L10n.of(ctx).delete),
         ),
       ],
     ),
@@ -60,7 +60,7 @@ void showUndoSnack(BuildContext context, String message, {VoidCallback? onUndo})
 }
 
 /// Same as [showUndoSnack] but with a captured messenger (usable after a sheet/route closes).
-void showUndoSnackOn(ScaffoldMessengerState m, String message, {String undoLabel = 'Undo', VoidCallback? onUndo}) {
+void showUndoSnackOn(ScaffoldMessengerState m, String message, {required String undoLabel, VoidCallback? onUndo}) {
   m.clearSnackBars();
   m.showSnackBar(SnackBar(
     content: Text(message),

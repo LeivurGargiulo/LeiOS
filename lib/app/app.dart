@@ -14,7 +14,7 @@ class LeiOSApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(syncControllerProvider);
     return MaterialApp.router(
-      title: 'LeiOS',
+      onGenerateTitle: (context) => L10n.of(context).appName,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),

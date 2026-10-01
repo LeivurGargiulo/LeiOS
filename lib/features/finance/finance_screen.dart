@@ -57,19 +57,22 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           if (i != _tab) setState(() => _tab = i);
         },
         tabs: [
-          TabSpec(label: 'Transactions', builder: (_) => _transactionsTab(context)),
-          TabSpec(label: 'Savings Funds', builder: (_) => _fundsTab(context)),
+          TabSpec(label: l.financeTransactions, builder: (_) => _transactionsTab(context)),
+          TabSpec(label: l.financeSavingsFunds, builder: (_) => _fundsTab(context)),
         ],
       ),
     );
   }
 
-  Widget _typeFilterRow() => ChipFilterRow<_TypeFilter>(
-        values: _TypeFilter.values,
-        selected: _filter,
-        labelOf: (f) => switch (f) { _TypeFilter.all => 'All', _TypeFilter.income => 'Income', _TypeFilter.expense => 'Expense', _TypeFilter.saved => 'Saved' },
-        onSelected: (f) => setState(() => _filter = f),
-      );
+  Widget _typeFilterRow() {
+    final l = L10n.of(context);
+    return ChipFilterRow<_TypeFilter>(
+      values: _TypeFilter.values,
+      selected: _filter,
+      labelOf: (f) => switch (f) { _TypeFilter.all => l.all, _TypeFilter.income => l.txIncome, _TypeFilter.expense => l.txExpense, _TypeFilter.saved => l.txSaved },
+      onSelected: (f) => setState(() => _filter = f),
+    );
+  }
 
   bool _matches(Tx t) => switch (_filter) {
         _TypeFilter.all => true,
@@ -164,6 +167,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       itemCount: funds.length,
                       separatorBuilder: (_, _) => const Divider(indent: Space.lg),
                       itemBuilder: (context, i) {
+                        final l = L10n.of(context);
                         final f = funds[i];
                         final current = fundCurrent(txs, f.id);
                         final pct = fundProgress(current, f.targetAmount);
@@ -173,7 +177,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                           title: Text(f.name),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: Space.xs),
-                            child: LabeledProgress(percent: pct, color: Theme.of(context).colorScheme.tertiary, semanticsLabel: '${f.name} progress'),
+                            child: LabeledProgress(percent: pct, color: Theme.of(context).colorScheme.tertiary, semanticsLabel: l.fundProgressOf(f.name)),
                           ),
                           trailing: Text('${formatMoney(current)} / ${formatMoney(f.targetAmount)}', style: moneyStyle(Theme.of(context).textTheme.bodyMedium)),
                           onTap: () => context.isExpanded ? context.go(fundRoute(f.id)) : openFund(context, id: f.id),
@@ -207,6 +211,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final maxCat = summary.byCategory.isEmpty ? 1 : summary.byCategory.first.amount;
@@ -221,9 +226,9 @@ class _SummaryCard extends StatelessWidget {
               if (expandedNew != null) NewButton(onPressed: expandedNew!),
             ]),
             const SizedBox(height: Space.sm),
-            Text('Balance', style: tt.labelLarge?.copyWith(color: cs.onSurfaceVariant), textAlign: TextAlign.center),
+            Text(l.financeBalance, style: tt.labelLarge?.copyWith(color: cs.onSurfaceVariant), textAlign: TextAlign.center),
             Semantics(
-              label: 'Balance ${summary.balance}',
+              label: l.financeBalanceSemantics(summary.balance),
               excludeSemantics: true,
               child: Text(
                 formatMoney(summary.balance),
@@ -233,14 +238,14 @@ class _SummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: Space.md),
             Row(children: [
-              Expanded(child: StatTile(label: 'Income', value: formatMoney(summary.income), color: cs.primary)),
+              Expanded(child: StatTile(label: l.txIncome, value: formatMoney(summary.income), color: cs.primary)),
               const SizedBox(width: Space.sm),
-              Expanded(child: StatTile(label: 'Expenses', value: formatMoney(summary.expenses), color: cs.error)),
+              Expanded(child: StatTile(label: l.financeExpenses, value: formatMoney(summary.expenses), color: cs.error)),
               const SizedBox(width: Space.sm),
-              Expanded(child: StatTile(label: 'Saved', value: formatMoney(summary.saved), color: cs.tertiary)),
+              Expanded(child: StatTile(label: l.txSaved, value: formatMoney(summary.saved), color: cs.tertiary)),
             ]),
             if (summary.byCategory.isNotEmpty) ...[
-              const SectionHeader('Spending by category', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+              SectionHeader(l.financeSpendingByCategory, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
               for (final c in summary.byCategory)
                 Padding(
                   padding: const EdgeInsets.only(bottom: Space.sm),
@@ -281,22 +286,22 @@ class _TxTile extends ConsumerWidget {
     Future<void> delete() async {
       final t = tx;
       await repo.deleteTransaction(t.id);
-      showUndoSnackOn(messenger, l.entityDeleted('Transaction'), undoLabel: l.undo, onUndo: () => repo.restoreTransaction(t));
+      showUndoSnackOn(messenger, l.entityDeleted(l.quickAddTransaction), undoLabel: l.undo, onUndo: () => repo.restoreTransaction(t));
     }
 
     return SwipeActionTile(
       key: ValueKey('tx-${tx.id}'),
       onSwipeLeft: delete,
-      menuItems: [TileMenuItem(label: 'Delete', icon: Icons.delete_outline, destructive: true, onTap: delete)],
+      menuItems: [TileMenuItem(label: l.delete, icon: Icons.delete_outline, destructive: true, onTap: delete)],
       child: ListTile(
         selected: selected,
         selectedTileColor: cs.secondaryContainer,
         leading: CircleAvatar(
           backgroundColor: cs.secondaryContainer,
           foregroundColor: cs.onSecondaryContainer,
-          child: Icon(icon, semanticLabel: typeLabel(tx.type)),
+          child: Icon(icon, semanticLabel: typeLabel(l, tx.type)),
         ),
-        title: Text(tx.category.trim().isEmpty ? 'Uncategorized' : tx.category),
+        title: Text(tx.category.trim().isEmpty ? l.txUncategorized : tx.category),
         subtitle: tx.note.isEmpty ? null : Text(tx.note, maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: Text('$sign${formatMoney(tx.amount)}', style: moneyStyle(tt.titleMedium?.copyWith(color: color))),
         onTap: () => context.isExpanded ? context.go(txRoute(tx.id)) : openTransaction(context, id: tx.id),

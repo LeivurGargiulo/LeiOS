@@ -26,7 +26,7 @@ class StreakChip extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     return Semantics(
-      label: '$streak day streak',
+      label: L10n.of(context).habitStreak(streak),
       excludeSemantics: true,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: Space.sm, vertical: Space.xs),
@@ -67,8 +67,8 @@ class HabitsCard extends ConsumerWidget {
     final completions = ref.watch(completionsProvider).asData?.value ?? const <HabitCompletion>[];
     final today = dateOnly(DateTime.now());
     return TonalCard(
-      title: 'Today',
-      action: TextButton(onPressed: () => showManageHabits(context), child: const Text('Manage')),
+      title: l.today,
+      action: TextButton(onPressed: () => showManageHabits(context), child: Text(l.habitsManage)),
       child: habits.isEmpty
           ? EmptyState(
               icon: Icons.self_improvement,
@@ -97,6 +97,7 @@ class _HabitRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final done = dates.contains(today);
@@ -114,7 +115,7 @@ class _HabitRow extends ConsumerWidget {
       state: done ? 2 : 0,
       size: 32,
       onTap: toggle,
-      semanticLabel: '${habit.name}, ${done ? 'completed' : 'not completed'} today',
+      semanticLabel: done ? l.habitCompletedToday(habit.name) : l.habitNotCompletedToday(habit.name),
     );
     return InkWell(
       borderRadius: BorderRadius.circular(8),
@@ -168,6 +169,7 @@ class _ManageHabitsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
     final habits = ref.watch(habitsProvider).asData?.value ?? const <Habit>[];
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.9),
@@ -178,10 +180,10 @@ class _ManageHabitsSheet extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: Space.xl),
             child: Row(
               children: [
-                Expanded(child: Text('Habits', style: Theme.of(context).textTheme.titleLarge)),
+                Expanded(child: Text(l.habitsTitle, style: Theme.of(context).textTheme.titleLarge)),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.add),
-                  label: const Text('Add habit'),
+                  label: Text(l.emptyHabitsAction),
                   onPressed: () => showEntitySheet(context, builder: (_) => const HabitFormSheet()),
                 ),
               ],
@@ -194,16 +196,16 @@ class _ManageHabitsSheet extends ConsumerWidget {
                 for (final h in habits)
                   ListTile(
                     title: Text(h.name),
-                    subtitle: Text('Target ${h.targetFrequency} / week'),
+                    subtitle: Text(l.habitTarget(h.targetFrequency)),
                     onTap: () => showEntitySheet(context, builder: (_) => HabitFormSheet(habit: h)),
                     trailing: IconButton(
-                      tooltip: 'Delete ${h.name}',
+                      tooltip: l.habitDeleteTooltip(h.name),
                       icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                       onPressed: () async {
                         final ok = await confirmDelete(
                           context,
-                          title: 'Delete habit?',
-                          body: 'This also deletes all completions of "${h.name}".',
+                          title: l.habitDeleteTitle,
+                          body: l.habitDeleteBody(h.name),
                         );
                         if (ok) await ref.read(habitsRepoProvider).delete(h.id);
                       },
@@ -239,9 +241,10 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final h = widget.habit;
     return EntitySheet(
-      title: h == null ? 'New habit' : 'Edit habit',
+      title: h == null ? l.habitNew : l.habitEdit,
       dirty: h == null ? (_name.text.isNotEmpty || _target != 7) : (_name.text != h.name || _target != h.targetFrequency),
       valid: _name.text.trim().isNotEmpty,
       onSave: () async {
@@ -259,11 +262,11 @@ class _HabitFormSheetState extends ConsumerState<HabitFormSheet> {
             controller: _name,
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: l.name),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.lg),
-          Text('Target per week: $_target', style: Theme.of(context).textTheme.labelLarge),
+          Text(l.habitTargetPerWeek(_target), style: Theme.of(context).textTheme.labelLarge),
           Slider(
             value: _target.toDouble(),
             min: 1,

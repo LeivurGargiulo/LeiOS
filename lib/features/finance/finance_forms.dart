@@ -34,7 +34,7 @@ void openFund(BuildContext context, {String? id}) {
   }
 }
 
-String typeLabel(TxType t) => switch (t) { TxType.income => 'Income', TxType.expense => 'Expense', TxType.savingsContribution => 'Saved' };
+String typeLabel(L10n l, TxType t) => switch (t) { TxType.income => l.txIncome, TxType.expense => l.txExpense, TxType.savingsContribution => l.txSaved };
 
 class TransactionForm extends ConsumerStatefulWidget {
   const TransactionForm({super.key, this.txId, required this.presentation, this.onClosed});
@@ -122,7 +122,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
       await repo.updateTransaction(widget.txId!, amount: amount, type: _type, category: _category.text, note: _note.text, date: _date, savingsFundId: _fundId);
     } else {
       final id = await repo.createTransaction(amount: amount, type: _type, category: _category.text, note: _note.text, date: _date, savingsFundId: _fundId);
-      showUndoSnackOn(messenger, l.entityAdded('Transaction'), undoLabel: l.undo, onUndo: () => repo.deleteTransaction(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.quickAddTransaction), undoLabel: l.undo, onUndo: () => repo.deleteTransaction(id));
     }
     discardDraft();
   }
@@ -135,7 +135,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
     final l = L10n.of(context);
     await repo.deleteTransaction(o.id);
     discardDraft();
-    showUndoSnackOn(messenger, l.entityDeleted('Transaction'), undoLabel: l.undo, onUndo: () => repo.restoreTransaction(o));
+    showUndoSnackOn(messenger, l.entityDeleted(l.quickAddTransaction), undoLabel: l.undo, onUndo: () => repo.restoreTransaction(o));
     if (!mounted) return;
     if (widget.presentation == EditorPresentation.inline) {
       widget.onClosed?.call();
@@ -147,6 +147,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
+    final l = L10n.of(context);
     final fmt = ref.watch(formatDateProvider);
     final funds = ref.watch(fundsProvider).asData?.value ?? const <SavingsFund>[];
     final txs = ref.watch(transactionsProvider).asData?.value ?? const <Tx>[];
@@ -159,7 +160,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
     }
     return EntityEditor(
       presentation: widget.presentation,
-      title: widget.txId == null ? 'New transaction' : 'Edit transaction',
+      title: widget.txId == null ? l.txNew : l.txEdit,
       dirty: _dirty,
       valid: (_amountValue ?? 0) >= 1,
       onSave: _save,
@@ -177,13 +178,13 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             style: moneyStyle(Theme.of(context).textTheme.headlineMedium),
-            decoration: const InputDecoration(labelText: 'Amount'),
+            decoration: InputDecoration(labelText: l.fieldAmount),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           SegmentedButton<TxType>(
             showSelectedIcon: false,
-            segments: [for (final t in TxType.values) ButtonSegment(value: t, label: Text(typeLabel(t)))],
+            segments: [for (final t in TxType.values) ButtonSegment(value: t, label: Text(typeLabel(l, t)))],
             selected: {_type},
             onSelectionChanged: (s) => setState(() {
               _type = s.first;
@@ -193,7 +194,7 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
           const SizedBox(height: Space.md),
           TextField(
             controller: _category,
-            decoration: const InputDecoration(labelText: 'Category'),
+            decoration: InputDecoration(labelText: l.fieldCategory),
             onChanged: (_) => setState(() {}),
           ),
           if (recent.isNotEmpty)
@@ -217,13 +218,13 @@ class _TransactionFormState extends ConsumerState<TransactionForm> with DraftFor
                   },
                 ),
                 const SizedBox(height: Space.md),
-                TextField(controller: _note, decoration: const InputDecoration(labelText: 'Note'), onChanged: (_) => setState(() {})),
+                TextField(controller: _note, decoration: InputDecoration(labelText: l.fieldNote), onChanged: (_) => setState(() {})),
                 const SizedBox(height: Space.md),
                 DropdownButtonFormField<String?>(
                   initialValue: funds.any((f) => f.id == _fundId) ? _fundId : null,
-                  decoration: const InputDecoration(labelText: 'Savings fund'),
+                  decoration: InputDecoration(labelText: l.fieldSavingsFund),
                   items: [
-                    const DropdownMenuItem<String?>(value: null, child: Text('None')),
+                    DropdownMenuItem<String?>(value: null, child: Text(l.none)),
                     for (final f in funds) DropdownMenuItem<String?>(value: f.id, child: Text(f.name)),
                   ],
                   onChanged: _type == TxType.savingsContribution ? (v) => setState(() => _fundId = v) : null,
@@ -309,7 +310,7 @@ class _FundFormState extends ConsumerState<FundForm> with DraftFormMixin<FundFor
       await repo.updateFund(widget.fundId!, name: _name.text, targetAmount: _targetValue ?? 0);
     } else {
       final id = await repo.createFund(name: _name.text, targetAmount: _targetValue ?? 0);
-      showUndoSnackOn(messenger, l.entityAdded('Fund'), undoLabel: l.undo, onUndo: () => repo.deleteFund(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.entityFund), undoLabel: l.undo, onUndo: () => repo.deleteFund(id));
     }
     discardDraft();
   }
@@ -317,10 +318,11 @@ class _FundFormState extends ConsumerState<FundForm> with DraftFormMixin<FundFor
   Future<void> _delete() async {
     final o = _original;
     if (o == null) return;
+    final l = L10n.of(context);
     final ok = await confirmDelete(
       context,
-      title: 'Delete fund?',
-      body: 'Transactions linked to "${o.name}" are kept but no longer belong to a fund.',
+      title: l.fundDeleteTitle,
+      body: l.fundDeleteBody(o.name),
     );
     if (!ok || !mounted) return;
     await ref.read(financeRepoProvider).deleteFund(o.id);
@@ -336,9 +338,10 @@ class _FundFormState extends ConsumerState<FundForm> with DraftFormMixin<FundFor
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
+    final l = L10n.of(context);
     return EntityEditor(
       presentation: widget.presentation,
-      title: widget.fundId == null ? 'New savings fund' : 'Edit savings fund',
+      title: widget.fundId == null ? l.fundNew : l.fundEdit,
       dirty: _dirty,
       valid: _name.text.trim().isNotEmpty && (_targetValue ?? 0) >= 1,
       onSave: _save,
@@ -354,7 +357,7 @@ class _FundFormState extends ConsumerState<FundForm> with DraftFormMixin<FundFor
             controller: _name,
             autofocus: widget.presentation == EditorPresentation.sheet,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Name'),
+            decoration: InputDecoration(labelText: l.name),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -362,7 +365,7 @@ class _FundFormState extends ConsumerState<FundForm> with DraftFormMixin<FundFor
             controller: _target,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(labelText: 'Target amount'),
+            decoration: InputDecoration(labelText: l.fieldTargetAmount),
             onChanged: (_) => setState(() {}),
           ),
         ],

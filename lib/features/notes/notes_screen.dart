@@ -53,13 +53,13 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
           child: Row(children: [
             Expanded(
               child: SearchBar(
-                hintText: 'Search notes',
+                hintText: l.noteSearch,
                 leading: const Icon(Icons.search),
                 elevation: const WidgetStatePropertyAll(0),
                 onChanged: (v) => setState(() => _query = v),
               ),
             ),
-            if (context.isExpanded) ...[const SizedBox(width: Space.sm), NewButton(onPressed: () => context.go('/notes/new'), label: 'New note')],
+            if (context.isExpanded) ...[const SizedBox(width: Space.sm), NewButton(onPressed: () => context.go('/notes/new'), label: l.noteNew)],
           ]),
         ),
         if (allTags.isNotEmpty)
@@ -137,7 +137,7 @@ class _NoteTile extends ConsumerWidget {
     final l = L10n.of(context);
     Future<void> delete() async {
       await repo.delete(note.id);
-      showUndoSnackOn(messenger, l.entityDeleted('Note'), undoLabel: l.undo, onUndo: () => repo.restore(note));
+      showUndoSnackOn(messenger, l.entityDeleted(l.quickAddNote), undoLabel: l.undo, onUndo: () => repo.restore(note));
     }
 
     final preview = stripMarkdown(note.content);
@@ -145,7 +145,7 @@ class _NoteTile extends ConsumerWidget {
       key: ValueKey('note-${note.id}'),
       onSwipeLeft: delete,
       menuItems: [
-        TileMenuItem(label: 'Delete', icon: Icons.delete_outline, destructive: true, onTap: delete),
+        TileMenuItem(label: l.delete, icon: Icons.delete_outline, destructive: true, onTap: delete),
       ],
       child: ListTile(
         selected: selected,

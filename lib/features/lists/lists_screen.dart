@@ -28,14 +28,14 @@ class _ListsScreenState extends ConsumerState<ListsScreen> {
       title: l.navLists,
       actions: [
         IconButton(
-          tooltip: _reorder ? 'Done reordering' : 'Reorder',
+          tooltip: _reorder ? l.listDoneReordering : l.listReorder,
           isSelected: _reorder,
           icon: const Icon(Icons.swap_vert),
           selectedIcon: const Icon(Icons.check),
           onPressed: () => setState(() => _reorder = !_reorder),
         ),
       ],
-      fab: FabSpec(tooltip: 'Add ${config.tabLabel.toLowerCase()} item', onPressed: () => openListItem(context, config)),
+      fab: FabSpec(tooltip: l.listAddItemTooltip(config.tabLabel(l).toLowerCase()), onPressed: () => openListItem(context, config)),
       body: TabbedScreen(
         prefKey: 'lists',
         scrollable: true,
@@ -45,7 +45,7 @@ class _ListsScreenState extends ConsumerState<ListsScreen> {
         tabs: [
           for (final c in listConfigs)
             TabSpec(
-              label: c.tabLabel,
+              label: c.tabLabel(l),
               builder: (_) => ListItemsView(config: c, selectedId: widget.selectedId, reorderMode: _reorder),
             ),
         ],

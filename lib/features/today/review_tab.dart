@@ -51,6 +51,7 @@ class _WeekCardState extends ConsumerState<_WeekCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final habits = ref.watch(habitsProvider).asData?.value ?? const <Habit>[];
     final completions = ref.watch(completionsProvider).asData?.value ?? const <HabitCompletion>[];
     final today = dateOnly(DateTime.now());
@@ -62,14 +63,14 @@ class _WeekCardState extends ConsumerState<_WeekCard> {
     final label = '${DateFormat('d MMM').format(days.first)} – ${DateFormat('d MMM').format(days.last)}';
 
     return TonalCard(
-      title: 'Week',
+      title: l.weekTitle,
       action: Row(mainAxisSize: MainAxisSize.min, children: [
-        IconButton(tooltip: 'Previous week', icon: const Icon(Icons.chevron_left), onPressed: () => setState(() => _offset--)),
-        Text(_offset == 0 ? 'This week' : label, style: tt.labelLarge),
-        IconButton(tooltip: 'Next week', icon: const Icon(Icons.chevron_right), onPressed: () => setState(() => _offset++)),
+        IconButton(tooltip: l.weekPrevious, icon: const Icon(Icons.chevron_left), onPressed: () => setState(() => _offset--)),
+        Text(_offset == 0 ? l.weekThis : label, style: tt.labelLarge),
+        IconButton(tooltip: l.weekNext, icon: const Icon(Icons.chevron_right), onPressed: () => setState(() => _offset++)),
       ]),
       child: habits.isEmpty
-          ? const Padding(padding: EdgeInsets.all(Space.md), child: Text('Add a habit to see your week.'))
+          ? Padding(padding: const EdgeInsets.all(Space.md), child: Text(l.weekEmpty))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -141,6 +142,7 @@ class _Cell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final future = day.isAfter(today);
     final dayName = DateFormat('EEEE d').format(day);
@@ -148,7 +150,7 @@ class _Cell extends ConsumerWidget {
       button: !future,
       enabled: !future,
       checked: done,
-      label: '$dayName, ${habit.name}, ${done ? 'completed' : 'not completed'}',
+      label: done ? l.habitDayCompleted(dayName, habit.name) : l.habitDayNotCompleted(dayName, habit.name),
       excludeSemantics: true,
       child: InkResponse(
         onTap: future ? null : () => ref.read(habitsRepoProvider).toggle(habit.id, day),
@@ -186,20 +188,21 @@ class _InsightsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final today = dateOnly(DateTime.now());
     final avg = moodAverage(feelings);
     final bw = bestWorstWeekday(feelings);
     final tags = topTags(feelings.map((f) => f.tags));
     final s = streak({for (final f in feelings) dateOnly(f.date)}, today);
     final tiles = [
-      StatTile(label: 'Average', value: avg == null ? '-' : avg.toStringAsFixed(1)),
-      StatTile(label: 'Current streak', value: '$s', icon: Icons.local_fire_department, color: Theme.of(context).colorScheme.tertiary),
-      StatTile(label: 'Total entries', value: '${feelings.length}'),
-      StatTile(label: 'Best weekday', value: bw.best ?? '-'),
-      StatTile(label: 'Worst weekday', value: bw.worst ?? '-'),
+      StatTile(label: l.statAverage, value: avg == null ? '-' : avg.toStringAsFixed(1)),
+      StatTile(label: l.statCurrentStreak, value: '$s', icon: Icons.local_fire_department, color: Theme.of(context).colorScheme.tertiary),
+      StatTile(label: l.statTotalEntries, value: '${feelings.length}'),
+      StatTile(label: l.statBestWeekday, value: bw.best ?? '-'),
+      StatTile(label: l.statWorstWeekday, value: bw.worst ?? '-'),
     ];
     return TonalCard(
-      title: 'Mood insights',
+      title: l.moodInsights,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -215,7 +218,7 @@ class _InsightsCard extends StatelessWidget {
             );
           }),
           if (tags.isNotEmpty) ...[
-            const SectionHeader('Top tags', padding: EdgeInsets.only(top: Space.md, bottom: Space.xs)),
+            SectionHeader(l.topTags, padding: const EdgeInsets.only(top: Space.md, bottom: Space.xs)),
             Wrap(spacing: Space.sm, runSpacing: Space.xs, children: [for (final t in tags) Chip(label: Text('${t.label} · ${t.count}'))]),
           ],
         ],
@@ -238,20 +241,21 @@ class _TrendCardState extends State<_TrendCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     final cs = Theme.of(context).colorScheme;
     final trend = moodTrend(widget.feelings, dateOnly(DateTime.now()));
     return TonalCard(
-      title: 'Mood trend (30 days)',
-      action: TextButton(onPressed: () => setState(() => _table = !_table), child: Text(_table ? 'Show chart' : 'Show as table')),
+      title: l.moodTrend,
+      action: TextButton(onPressed: () => setState(() => _table = !_table), child: Text(_table ? l.showChart : l.showTable)),
       child: widget.feelings.isEmpty
-          ? const EmptyState(icon: Icons.mood, title: 'No mood entries yet', message: 'Pick how you feel today.', seed: 5, compact: true)
+          ? EmptyState(icon: Icons.mood, title: l.emptyMoodTitle, message: l.emptyMoodMessage, seed: 5, compact: true)
           : _table
               ? Column(children: [
                   for (final p in trend.reversed.where((p) => p.rating != null))
                     ListTile(dense: true, title: Text(DateFormat('EEE d MMM').format(p.day)), trailing: Text('${p.rating}', style: moneyStyle(null))),
                 ])
               : Semantics(
-                  label: 'Mood over the last 30 days. Use "Show as table" for the data.',
+                  label: l.moodTrendSemantics,
                   child: SizedBox(
                     height: 180,
                     child: LineChart(
@@ -325,7 +329,7 @@ class _HistoryCard extends ConsumerWidget {
     final l = L10n.of(context);
     final messenger = ScaffoldMessenger.of(context);
     return TonalCard(
-      title: 'Mood history',
+      title: l.moodHistory,
       child: feelings.isEmpty
           ? EmptyState(icon: Icons.mood, title: l.emptyMoodTitle, message: l.emptyMoodMessage, seed: 6, compact: true)
           : Column(
@@ -335,23 +339,23 @@ class _HistoryCard extends ConsumerWidget {
                     key: ValueKey('feel-${f.id}'),
                     onSwipeLeft: () async {
                       await repo.delete(f.id);
-                      showUndoSnackOn(messenger, l.entityDeleted('Entry'), undoLabel: l.undo, onUndo: () => repo.restore(f));
+                      showUndoSnackOn(messenger, l.entityDeleted(l.entityEntry), undoLabel: l.undo, onUndo: () => repo.restore(f));
                     },
                     menuItems: [
-                      TileMenuItem(label: 'Edit', icon: Icons.edit_outlined, onTap: () => showMoodSheet(context, date: f.date)),
+                      TileMenuItem(label: l.edit, icon: Icons.edit_outlined, onTap: () => showMoodSheet(context, date: f.date)),
                       TileMenuItem(
-                        label: 'Delete',
+                        label: l.delete,
                         icon: Icons.delete_outline,
                         destructive: true,
                         onTap: () async {
                           await repo.delete(f.id);
-                          showUndoSnackOn(messenger, l.entityDeleted('Entry'), undoLabel: l.undo, onUndo: () => repo.restore(f));
+                          showUndoSnackOn(messenger, l.entityDeleted(l.entityEntry), undoLabel: l.undo, onUndo: () => repo.restore(f));
                         },
                       ),
                     ],
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: Semantics(label: 'Mood ${f.rating} of 5', child: Icon(moodIcon(f.rating))),
+                      leading: Semantics(label: l.moodRatingOf(f.rating), child: Icon(moodIcon(f.rating))),
                       title: Text(fmt(f.date)),
                       subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         if (f.notes.isNotEmpty) Text(f.notes, maxLines: 1, overflow: TextOverflow.ellipsis),

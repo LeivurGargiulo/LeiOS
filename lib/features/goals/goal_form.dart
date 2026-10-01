@@ -26,7 +26,7 @@ void openGoal(BuildContext context, {String? id}) {
   }
 }
 
-String goalStatusLabel(GoalStatus s) => switch (s) { GoalStatus.pending => 'Pending', GoalStatus.active => 'Active', GoalStatus.completed => 'Completed' };
+String goalStatusLabel(L10n l, GoalStatus s) => switch (s) { GoalStatus.pending => l.pending, GoalStatus.active => l.active, GoalStatus.completed => l.completed };
 
 class GoalForm extends ConsumerStatefulWidget {
   const GoalForm({super.key, this.goalId, required this.presentation, this.onClosed});
@@ -129,7 +129,7 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
       for (final s in _pendingSteps) {
         await repo.addStep(id, s);
       }
-      showUndoSnackOn(messenger, l.entityAdded('Goal'), undoLabel: l.undo, onUndo: () => repo.delete(id));
+      showUndoSnackOn(messenger, l.entityAdded(l.entityGoal), undoLabel: l.undo, onUndo: () => repo.delete(id));
     }
     discardDraft();
   }
@@ -137,7 +137,8 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
   Future<void> _delete() async {
     final o = _original;
     if (o == null) return;
-    final ok = await confirmDelete(context, title: 'Delete goal?', body: 'This also deletes the goal\'s checklist steps.');
+    final l = L10n.of(context);
+    final ok = await confirmDelete(context, title: l.goalDeleteTitle, body: l.goalDeleteBody);
     if (!ok || !mounted) return;
     await ref.read(goalsRepoProvider).delete(o.id);
     discardDraft();
@@ -164,6 +165,7 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final l = L10n.of(context);
     final fmt = ref.watch(formatDateProvider);
     final allSteps = ref.watch(goalStepsProvider).asData?.value ?? const <GoalStep>[];
     final steps = _editing ? allSteps.where((s) => s.goalId == widget.goalId).toList() : <GoalStep>[];
@@ -183,7 +185,7 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
 
     return EntityEditor(
       presentation: widget.presentation,
-      title: _editing ? 'Edit goal' : 'New goal',
+      title: _editing ? l.goalEdit : l.goalNew,
       dirty: _dirty,
       valid: _title.text.trim().isNotEmpty,
       onSave: _save,
@@ -198,7 +200,7 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
           TextField(
             controller: _title,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(labelText: l.title),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -207,22 +209,22 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
             minLines: 2,
             maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Description'),
+            decoration: InputDecoration(labelText: l.description),
             onChanged: (_) => setState(() {}),
           ),
-          const SectionHeader('Target', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          SectionHeader(l.goalTarget, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
           PeriodPicker(date: _target, precision: _precision, format: fmt, onChanged: (d, p) => setState(() {
                 _target = d;
                 _precision = p;
               })),
-          const SectionHeader('Status', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          SectionHeader(l.goalStatus, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
           Wrap(spacing: Space.sm, runSpacing: Space.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            Chip(label: Text(goalStatusLabel(_status))),
+            Chip(label: Text(goalStatusLabel(l, _status))),
             FilledButton.tonal(onPressed: () => setState(() => _status = nextGoalStatus(_status)), child: Text(goalAdvanceLabel(_status))),
           ]),
-          const SectionHeader('Progress', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
-          LabeledProgress(percent: progress, label: formatProgress(progress), semanticsLabel: 'Goal progress'),
-          const SectionHeader('Steps', padding: EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          SectionHeader(l.goalProgress, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
+          LabeledProgress(percent: progress, label: formatProgress(progress), semanticsLabel: l.goalProgressSemantics),
+          SectionHeader(l.goalSteps, padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm)),
           if (_editing)
             ReorderableGroup<GoalStep>(
               items: steps,
@@ -232,7 +234,7 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
               itemBuilder: (context, s) => SwipeActionTile(
                 key: ValueKey('step-${s.id}'),
                 onSwipeLeft: () => repo.deleteStep(widget.goalId!, s.id),
-                menuItems: [TileMenuItem(label: 'Delete', icon: Icons.delete_outline, destructive: true, onTap: () => repo.deleteStep(widget.goalId!, s.id))],
+                menuItems: [TileMenuItem(label: l.delete, icon: Icons.delete_outline, destructive: true, onTap: () => repo.deleteStep(widget.goalId!, s.id))],
                 child: CheckboxListTile(
                   controlAffinity: ListTileControlAffinity.leading,
                   contentPadding: EdgeInsets.zero,
@@ -248,24 +250,24 @@ class _GoalFormState extends ConsumerState<GoalForm> with DraftFormMixin<GoalFor
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.check_box_outline_blank),
                 title: Text(_pendingSteps[i]),
-                trailing: IconButton(tooltip: 'Remove step', icon: const Icon(Icons.close), onPressed: () => setState(() => _pendingSteps.removeAt(i))),
+                trailing: IconButton(tooltip: l.goalRemoveStep, icon: const Icon(Icons.close), onPressed: () => setState(() => _pendingSteps.removeAt(i))),
               ),
           Row(children: [
             Expanded(
               child: TextField(
                 controller: _newStep,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(labelText: 'Add a step'),
+                decoration: InputDecoration(labelText: l.goalAddStepLabel),
                 onSubmitted: (_) => _addStep(),
               ),
             ),
             const SizedBox(width: Space.sm),
-            IconButton.filled(tooltip: 'Add step', icon: const Icon(Icons.add), onPressed: _addStep),
+            IconButton.filled(tooltip: l.goalAddStepTooltip, icon: const Icon(Icons.add), onPressed: _addStep),
           ]),
           if (_original != null)
             Padding(
               padding: const EdgeInsets.only(top: Space.md),
-              child: Text('Created ${fmt(dateOnly(_original!.createdAt.toLocal()))}', style: Theme.of(context).textTheme.labelSmall),
+              child: Text(l.goalCreated(fmt(dateOnly(_original!.createdAt.toLocal()))), style: Theme.of(context).textTheme.labelSmall),
             ),
         ],
       ),

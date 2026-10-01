@@ -40,11 +40,14 @@ class _ListItemsViewState extends ConsumerState<ListItemsView> {
 
   ListConfig get c => widget.config;
 
-  String _filterLabel(_ItemFilter f) => switch (f) {
-        _ItemFilter.pending => 'Pending',
-        _ItemFilter.done => c.doneLabel,
-        _ItemFilter.all => 'All',
-      };
+  String _filterLabel(_ItemFilter f) {
+    final l = L10n.of(context);
+    return switch (f) {
+      _ItemFilter.pending => l.pending,
+      _ItemFilter.done => c.doneLabel(l),
+      _ItemFilter.all => l.all,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +83,12 @@ class _ListItemsViewState extends ConsumerState<ListItemsView> {
               Padding(
                 padding: const EdgeInsets.only(right: Space.sm),
                 child: PopupMenuButton<String?>(
-                  tooltip: 'Filter by ${c.categoryLabel!.toLowerCase()}',
+                  tooltip: l.listFilterBy(c.categoryLabel(l)!.toLowerCase()),
                   icon: Icon(_category == null ? Icons.filter_list : Icons.filter_alt),
                   initialValue: _category,
                   onSelected: (v) => setState(() => _category = v),
                   itemBuilder: (_) => [
-                    const PopupMenuItem<String?>(value: null, child: Text('All')),
+                    PopupMenuItem<String?>(value: null, child: Text(l.all)),
                     for (final cat in categories) PopupMenuItem<String?>(value: cat, child: Text(cat)),
                   ],
                 ),
@@ -127,7 +130,7 @@ class _ListItemsViewState extends ConsumerState<ListItemsView> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.lg, vertical: Space.md),
               child: Row(children: [
-                Text('Pending total', style: Theme.of(context).textTheme.labelLarge),
+                Text(l.listPendingTotal, style: Theme.of(context).textTheme.labelLarge),
                 const Spacer(),
                 Text(formatMoney(pendingTotal), style: moneyStyle(Theme.of(context).textTheme.titleMedium)),
               ]),
@@ -180,7 +183,7 @@ class _ItemTile extends ConsumerWidget {
       await repo.delete(config.kind, o.id);
       showUndoSnackOn(
         messenger,
-        l.entityDeleted('Item'),
+        l.entityDeleted(l.entityItem),
         undoLabel: l.undo,
         onUndo: () => repo.create(config.kind, id: o.id, title: o.title, category: o.category, notes: o.notes, url: o.url, price: o.price, done: o.done),
       );
@@ -195,10 +198,10 @@ class _ItemTile extends ConsumerWidget {
       key: ValueKey('li-${item.id}'),
       onSwipeLeft: delete,
       menuItems: [
-        TileMenuItem(label: item.done ? 'Mark pending' : 'Mark ${config.doneLabel.toLowerCase()}', icon: Icons.check, onTap: () => repo.update(item.id, done: !item.done)),
-        TileMenuItem(label: 'Move up', icon: Icons.arrow_upward, onTap: () => repo.move(config.kind, item.id, -1)),
-        TileMenuItem(label: 'Move down', icon: Icons.arrow_downward, onTap: () => repo.move(config.kind, item.id, 1)),
-        TileMenuItem(label: 'Delete', icon: Icons.delete_outline, destructive: true, onTap: delete),
+        TileMenuItem(label: item.done ? l.listMarkPending : l.listMarkDone(config.doneLabel(l).toLowerCase()), icon: Icons.check, onTap: () => repo.update(item.id, done: !item.done)),
+        TileMenuItem(label: l.moveUp, icon: Icons.arrow_upward, onTap: () => repo.move(config.kind, item.id, -1)),
+        TileMenuItem(label: l.moveDown, icon: Icons.arrow_downward, onTap: () => repo.move(config.kind, item.id, 1)),
+        TileMenuItem(label: l.delete, icon: Icons.delete_outline, destructive: true, onTap: delete),
       ],
       child: ListTile(
         selected: selected,
@@ -206,7 +209,7 @@ class _ItemTile extends ConsumerWidget {
         contentPadding: const EdgeInsets.only(left: Space.xs),
         leading: StatusCircle(
           state: item.done ? 2 : 0,
-          semanticLabel: '${config.doneLabel}: ${item.done ? 'yes' : 'no'}',
+          semanticLabel: item.done ? l.listStatusYes(config.doneLabel(l)) : l.listStatusNo(config.doneLabel(l)),
           onTap: () => repo.update(item.id, done: !item.done),
         ),
         title: AnimatedDefaultTextStyle(
@@ -222,7 +225,7 @@ class _ItemTile extends ConsumerWidget {
           if (config.hasPrice && item.price != null) Text(formatMoney(item.price!), style: moneyStyle(tt.bodyMedium)),
           if (item.url.isNotEmpty)
             IconButton(
-              tooltip: 'Open link',
+              tooltip: l.listOpenLink,
               icon: const Icon(Icons.link),
               onPressed: () {
                 final uri = Uri.tryParse(item.url.contains('://') ? item.url : 'https://${item.url}');

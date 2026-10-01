@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Reorderable list with a drag handle AND move up/down buttons (spec §2.1).
 class ReorderableGroup<T> extends StatelessWidget {
   const ReorderableGroup({
@@ -38,12 +40,12 @@ class ReorderableGroup<T> extends StatelessWidget {
             ),
             Expanded(child: itemBuilder(context, item)),
             IconButton(
-              tooltip: 'Move up',
+              tooltip: L10n.of(context).moveUp,
               icon: const Icon(Icons.arrow_upward, size: 20),
               onPressed: i == 0 ? null : () => onMove(item, -1),
             ),
             IconButton(
-              tooltip: 'Move down',
+              tooltip: L10n.of(context).moveDown,
               icon: const Icon(Icons.arrow_downward, size: 20),
               onPressed: i == items.length - 1 ? null : () => onMove(item, 1),
             ),

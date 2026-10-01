@@ -122,7 +122,7 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
       );
     } else {
       final id = await repo.create(c.kind, title: _title.text, category: _category.text, notes: _notes.text, url: _url.text, price: price);
-      showUndoSnackOn(messenger, l.entityAdded('Item'), undoLabel: l.undo, onUndo: () => repo.delete(c.kind, id));
+      showUndoSnackOn(messenger, l.entityAdded(l.entityItem), undoLabel: l.undo, onUndo: () => repo.delete(c.kind, id));
     }
     discardDraft();
   }
@@ -137,7 +137,7 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
     discardDraft();
     showUndoSnackOn(
       messenger,
-      l.entityDeleted('Item'),
+      l.entityDeleted(l.entityItem),
       undoLabel: l.undo,
       onUndo: () => repo.create(c.kind, id: o.id, title: o.title, category: o.category, notes: o.notes, url: o.url, price: o.price, done: o.done),
     );
@@ -151,6 +151,7 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
 
   @override
   Widget build(BuildContext context) {
+    final l = L10n.of(context);
     if (!_loaded) return const SizedBox(height: 160, child: Center(child: CircularProgressIndicator()));
     final hasMore = c.hasNotes || c.hasUrl || c.hasPrice;
     final moreFields = Column(
@@ -162,7 +163,7 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
             minLines: 2,
             maxLines: 5,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Notes'),
+            decoration: InputDecoration(labelText: l.notes),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -171,7 +172,7 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
           TextField(
             controller: _url,
             keyboardType: TextInputType.url,
-            decoration: const InputDecoration(labelText: 'URL'),
+            decoration: InputDecoration(labelText: l.fieldUrl),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -181,14 +182,14 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
             controller: _price,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(labelText: 'Price'),
+            decoration: InputDecoration(labelText: l.fieldPrice),
             onChanged: (_) => setState(() {}),
           ),
       ],
     );
     return EntityEditor(
       presentation: widget.presentation,
-      title: widget.itemId == null ? 'New ${c.tabLabel.toLowerCase()} item' : 'Edit item',
+      title: widget.itemId == null ? l.listNewItem(c.tabLabel(l).toLowerCase()) : l.listEditItem,
       dirty: _dirty,
       valid: _title.text.trim().isNotEmpty,
       onSave: _save,
@@ -204,14 +205,14 @@ class _ListItemFormState extends ConsumerState<ListItemForm> with DraftFormMixin
             controller: _title,
             autofocus: widget.presentation == EditorPresentation.sheet,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: InputDecoration(labelText: l.title),
             onChanged: (_) => setState(() {}),
           ),
           if (c.hasCategory) ...[
             const SizedBox(height: Space.md),
             TextField(
               controller: _category,
-              decoration: InputDecoration(labelText: c.categoryLabel),
+              decoration: InputDecoration(labelText: c.categoryLabel(l)),
               onChanged: (_) => setState(() {}),
             ),
             if (c.categorySuggestions.isNotEmpty)

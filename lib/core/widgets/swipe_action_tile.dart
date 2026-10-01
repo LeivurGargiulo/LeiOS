@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../design/tokens.dart';
 
 class TileMenuItem {
@@ -45,7 +46,7 @@ class SwipeActionTile extends StatelessWidget {
         Expanded(child: child),
         if (showMenu && menuItems.isNotEmpty)
           PopupMenuButton<int>(
-            tooltip: 'More actions',
+            tooltip: L10n.of(context).moreActions,
             icon: const Icon(Icons.more_vert),
             onSelected: (i) => menuItems[i].onTap(),
             itemBuilder: (_) => [

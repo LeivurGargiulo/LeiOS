@@ -15,7 +15,7 @@ import '../../l10n/app_localizations.dart';
 
 int statusIndex(TaskStatus s) => switch (s) { TaskStatus.todo => 0, TaskStatus.doing => 1, TaskStatus.done => 2 };
 
-String statusLabel(TaskStatus s) => switch (s) { TaskStatus.todo => 'To do', TaskStatus.doing => 'Doing', TaskStatus.done => 'Done' };
+String statusLabel(L10n l, TaskStatus s) => switch (s) { TaskStatus.todo => l.statusTodo, TaskStatus.doing => l.statusDoing, TaskStatus.done => l.statusDone };
 
 /// A task row used by Tasks, Today and Calendar: animated status circle, title, metadata chips.
 class TaskTile extends ConsumerWidget {
@@ -42,7 +42,7 @@ class TaskTile extends ConsumerWidget {
     Future<void> delete() async {
       final t = task;
       await repo.delete(t.id);
-      showUndoSnackOn(messenger, l.entityDeleted('Task'), undoLabel: l.undo, onUndo: () => repo.restore(t));
+      showUndoSnackOn(messenger, l.entityDeleted(l.quickAddTask), undoLabel: l.undo, onUndo: () => repo.restore(t));
     }
 
     final chips = <Widget>[
@@ -52,9 +52,9 @@ class TaskTile extends ConsumerWidget {
           label: dueLabel(task.dueDate!, today, fmt),
           color: overdue ? cs.error : cs.onSurfaceVariant,
         ),
-      if (task.urgent) const _IconMeta(Icons.priority_high, 'Urgent'),
-      if (task.important) const _IconMeta(Icons.star_outline, 'Important'),
-      if (task.longTerm) const _IconMeta(Icons.flag_outlined, 'Long-term'),
+      if (task.urgent) _IconMeta(Icons.priority_high, l.urgent),
+      if (task.important) _IconMeta(Icons.star_outline, l.important),
+      if (task.longTerm) _IconMeta(Icons.flag_outlined, l.longTerm),
     ];
 
     final tile = ListTile(
@@ -64,7 +64,7 @@ class TaskTile extends ConsumerWidget {
       minVerticalPadding: dense ? 0 : null,
       leading: StatusCircle(
         state: statusIndex(task.status),
-        semanticLabel: '${statusLabel(task.status)}. Tap to advance.',
+        semanticLabel: l.taskTapToAdvance(statusLabel(l, task.status)),
         onTap: () => repo.advance(task.id),
       ),
       title: AnimatedDefaultTextStyle(
@@ -86,8 +86,8 @@ class TaskTile extends ConsumerWidget {
       rightIcon: done ? Icons.undo : (task.status == TaskStatus.doing ? Icons.check : Icons.arrow_forward),
       onSwipeLeft: delete,
       menuItems: [
-        TileMenuItem(label: done ? 'Mark to do' : 'Advance status', icon: Icons.arrow_forward, onTap: () => repo.advance(task.id)),
-        TileMenuItem(label: 'Delete', icon: Icons.delete_outline, destructive: true, onTap: delete),
+        TileMenuItem(label: done ? l.taskMarkTodo : l.taskAdvance, icon: Icons.arrow_forward, onTap: () => repo.advance(task.id)),
+        TileMenuItem(label: l.delete, icon: Icons.delete_outline, destructive: true, onTap: delete),
       ],
       child: tile,
     );
