@@ -50,5 +50,11 @@ app.*.map.json
 # Secrets / env
 .env
 .env.json
+.env.prod.json
 *.jks
 key.properties
+
+# Local tooling
+node_modules/
+supabase/.temp/
+.claude/settings.local.json
