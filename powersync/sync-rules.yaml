@@ -1,0 +1,17 @@
+# Sync rules: one bucket per user. Every table in the Postgres schema is synced.
+bucket_definitions:
+  user_data:
+    parameters: SELECT request.user_id() AS user_id
+    data:
+      - SELECT * FROM tasks WHERE user_id = bucket.user_id
+      - SELECT * FROM habits WHERE user_id = bucket.user_id
+      - SELECT * FROM habit_completions WHERE user_id = bucket.user_id
+      - SELECT * FROM feelings WHERE user_id = bucket.user_id
+      - SELECT * FROM goals WHERE user_id = bucket.user_id
+      - SELECT * FROM goal_steps WHERE user_id = bucket.user_id
+      - SELECT * FROM events WHERE user_id = bucket.user_id
+      - SELECT * FROM notes WHERE user_id = bucket.user_id
+      - SELECT * FROM list_items WHERE user_id = bucket.user_id
+      - SELECT * FROM savings_funds WHERE user_id = bucket.user_id
+      - SELECT * FROM transactions WHERE user_id = bucket.user_id
+      - SELECT * FROM settings WHERE user_id = bucket.user_id
